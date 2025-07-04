@@ -19,7 +19,7 @@ export default function JobsProvider({ children }) {
           location: "Remote",
           description: 'Build and maintain web/mobile interfaces.',
           salary: "$80k - $100k",
-          link: 'https://example.com/job/1',
+          link: 'https://www.indeed.com/viewjob?jk=d46480488e3aa20c'
         },
         {
           id: 2,
@@ -28,7 +28,7 @@ export default function JobsProvider({ children }) {
           location: "Remote",
           description: 'Work on APIs and server-side logic.',
           salary: "$80k - $100k",
-          link: 'https://example.com/job/2',
+          link: 'https://www.indeed.com/viewjob?jk=ba9bf4e04cfd9cdb',
         },
       ]);
     })();

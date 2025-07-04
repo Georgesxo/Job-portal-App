@@ -10,22 +10,28 @@ export default function PostJob({ navigation }) {
   const [title, setTitle] = useState('');
   const [company, setCompany] = useState('');
    const [location, setLocation] = useState('');
+      const [type, setType] = useState('');
   const [description, setDescription] = useState('');
    const [salary, setSalary] = useState('');
+   const [benefits, setBenefits] = useState('');
+    const [date, setDate] = useState('');
   const [link, setLink] = useState('');
 
   const handleSubmit = () => {
-    if (!title || !company || !description) {
+    if (!title || !company || !location || !type || !description || !salary || !benefits || !date || !link) {
       Alert.alert('Please fill in all required fields.');
       return;
     }
-    addJob({ title, company, description, link });
+    addJob({ title, company,location, type, description, salary, benefits, date, link });
     Alert.alert('Job posted successfully!');
     setTitle('');
     setCompany('');
     setLocation('');
+    setType('');
     setDescription('');
     setSalary('');
+    setBenefits('');
+    Date(new Date().toLocaleDateString());
     setLink('');
     if (navigation) navigation.goBack();
   };
@@ -55,6 +61,13 @@ export default function PostJob({ navigation }) {
           onChangeText={setLocation}
           placeholder="Enter job location"
         />
+         <Text style={styles.label}>Job Type</Text>
+          <TextInput
+          style={styles.input}
+          value={type}
+          onChangeText={setType}
+          placeholder="Enter job Type (e.g., Full-time, Part-time, Contract)"
+        />
         <Text style={styles.label}>Description</Text>
         <TextInput
           style={[styles.input, styles.textarea]}
@@ -62,7 +75,7 @@ export default function PostJob({ navigation }) {
           onChangeText={setDescription}
           placeholder="Enter job description"
           multiline
-          numberOfLines={4}
+          numberOfLines={100}
         />
          <Text style={styles.label}>Job Salary</Text>
         <TextInput
@@ -71,6 +84,23 @@ export default function PostJob({ navigation }) {
           onChangeText={setSalary}
           placeholder="Enter salary"
         />
+         <Text style={styles.label}>Job Benefits</Text>
+        <TextInput
+          style={[styles.input, styles.textarea]}
+          value={salary}
+          onChangeText={setBenefits}
+          placeholder="Enter Job Benefits"
+          multiline
+          numberOfLines={100}
+        />
+          <Text style={styles.label}>Date Posted</Text>
+        <TextInput
+          style={styles.input}
+          value={salary}
+          onChangeText={setDate}
+          placeholder="Enter Date Posted"
+        />
+        
         <Text style={styles.label}>Link (optional)</Text>
         <TextInput
           style={styles.input}

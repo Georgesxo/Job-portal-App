@@ -16,7 +16,12 @@ export default function JobDetailsScreen({ route, navigation }) {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>{job.title}</Text>
       <Text style={styles.company}>{job.company}</Text>
+       <Text style={styles.location}>{job.location}</Text>
+         <Text style={styles.type}>{job.type}</Text>
       <Text style={styles.description}>{job.description}</Text>
+       <Text style={styles.salary}>{job.salary}</Text>
+       <Text style={styles.Date}>{job.Date}</Text>
+       <Text style={styles.Benefits}>{job.Benefits}</Text>
       {job.link ? (
         <TouchableOpacity onPress={() => Linking.openURL(job.link)}>
           <Text style={styles.link}>Apply / View More</Text>
