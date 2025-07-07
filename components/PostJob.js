@@ -7,9 +7,9 @@ import { JobsContext } from './JobsProvider';
 export default function PostJob({ navigation }) {
   const { addJob } = useContext(JobsContext);
 
+   const [company, setCompany] = useState('');
   const [title, setTitle] = useState('');
-  const [company, setCompany] = useState('');
-   const [location, setLocation] = useState('');
+ const [location, setLocation] = useState('');
       const [type, setType] = useState('');
   const [description, setDescription] = useState('');
    const [salary, setSalary] = useState('');
@@ -18,20 +18,20 @@ export default function PostJob({ navigation }) {
   const [link, setLink] = useState('');
 
   const handleSubmit = () => {
-    if (!title || !company || !location || !type || !description || !salary || !benefits || !date || !link) {
+    if (!company || !title || !location || !type || !salary || !date || !description  || !benefits || !link) {
       Alert.alert('Please fill in all required fields.');
       return;
     }
-    addJob({ title, company,location, type, description, salary, benefits, date, link });
+    addJob({ title, company,location, type, salary, date,  description, benefits,link });
     Alert.alert('Job posted successfully!');
-    setTitle('');
     setCompany('');
+    setTitle('');
     setLocation('');
     setType('');
-    setDescription('');
     setSalary('');
+     setDate('');
+    setDescription('');
     setBenefits('');
-    Date(new Date().toLocaleDateString());
     setLink('');
     if (navigation) navigation.goBack();
   };
@@ -40,19 +40,19 @@ export default function PostJob({ navigation }) {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>Post a New Job</Text>
       <View style={styles.form}>
-        <Text style={styles.label}>Job Title</Text>
-        <TextInput
-          style={styles.input}
-          value={title}
-          onChangeText={setTitle}
-          placeholder="Enter job title"
-        />
         <Text style={styles.label}>Company</Text>
         <TextInput
           style={styles.input}
           value={company}
           onChangeText={setCompany}
           placeholder="Enter company name"
+        />
+        <Text style={styles.label}>Job Title</Text>
+        <TextInput
+          style={styles.input}
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Enter job title"
         />
          <Text style={styles.label}>Job Location</Text>
         <TextInput
@@ -84,21 +84,21 @@ export default function PostJob({ navigation }) {
           onChangeText={setSalary}
           placeholder="Enter salary"
         />
+         <Text style={styles.label}>Date Posted</Text>
+        <TextInput
+          style={styles.input}
+          value={date}
+          onChangeText={setDate}
+          placeholder="Enter Date Posted"
+        />
          <Text style={styles.label}>Job Benefits</Text>
         <TextInput
           style={[styles.input, styles.textarea]}
-          value={salary}
+          value={benefits}
           onChangeText={setBenefits}
           placeholder="Enter Job Benefits"
           multiline
           numberOfLines={100}
-        />
-          <Text style={styles.label}>Date Posted</Text>
-        <TextInput
-          style={styles.input}
-          value={salary}
-          onChangeText={setDate}
-          placeholder="Enter Date Posted"
         />
         
         <Text style={styles.label}>Link (optional)</Text>

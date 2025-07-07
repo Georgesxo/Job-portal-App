@@ -6,7 +6,6 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to Job Board</Text>
       <Text style={styles.subtitle}>
-        Click on Jobs in the sidebar to view available job listings.
       </Text>
     </View>
   );

@@ -15,10 +15,11 @@ import AppliedScreen from './screens/AppliedScreen';
 import MessagesScreen from './screens/MessagesScreen';
 import JobDetailsScreen from './screens/JobDetailsScreen';
 import JobProviderScreen from './screens/JobProviderScreen';
-import AuthProvider, { AuthContext } from './components/AuthContext';
+import AuthProvider from './components/AuthContext';
 import AdminLoginScreen from './screens/AdminLoginScreen';
-
-
+import SignUpScreen from './screens/SignUpScreen';
+import SignInScreen from './screens/SignInScreen';
+import { AuthContext } from './components/AuthContext';
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -40,6 +41,7 @@ return (
   <JobsProvider>
      <AuthProvider>
     <NavigationContainer>
+       <AuthContext.Consumer>
       <View style={styles.container}>
         <View style={styles.mainContent}>
           <Header
@@ -49,11 +51,17 @@ return (
             }}
             onPostJob={() => setActivePage('post-job')}
           />
-          <Stack.Navigator
-            screenOptions={{ headerShown: false }}
-            initialRouteName="Main"
-          >
-            <Stack.Screen name="Main">
+         
+           {({ token, signOut }) => (
+              <Stack.Navigator screenOptions={{ headerShown: false }}>
+                {!token ? (
+                  <>
+                    <Stack.Screen name="SignUp" component={SignUpScreen} />
+                    <Stack.Screen name="SignIn" component={SignInScreen} />
+                  </>
+                ) : (
+                  <>
+                    <Stack.Screen name="Home" component={HomeScreen} />
               {({ navigation }) =>
                 activePage === 'post-job' ? (
                   <PostJob navigation={navigation} />
@@ -63,11 +71,14 @@ return (
                   renderMainContent(navigation)
                 )
               }
-            </Stack.Screen>
+            
             <Stack.Screen name="JobProvider" component={JobProviderScreen} />
             <Stack.Screen name="JobDetails" component={JobDetailsScreen} />
             <Stack.Screen name="AdminLogin" component={AdminLoginScreen} />
+             </>
+                )}
           </Stack.Navigator>
+           )}
         </View>
         <BottomMenuBar
           activePage={activePage}
@@ -75,6 +86,7 @@ return (
           setIsProfilePage={setIsProfilePage}
         />
       </View>
+      </AuthContext.Consumer>
     </NavigationContainer>
     </AuthProvider>
   </JobsProvider>

@@ -7,6 +7,9 @@ import { useNavigation } from '@react-navigation/native';
 export default function Header({ onEditProfile, onPostJob }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 const navigation = useNavigation();
+const { signOut } = useContext(AuthContext);
+signOut();
+navigation.replace('SignIn');
  
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>

@@ -4,65 +4,48 @@ import { View, Text, TouchableOpacity, Modal, StyleSheet, Linking, ScrollView } 
 const JobCard = ({ job }) => {
   const [showDetails, setShowDetails] = useState(false);
 
-  const handleApplyClick = () => {
-    setShowDetails(true);
-  };
-
-  const handleCloseDetails = () => {
-    setShowDetails(false);
-  };
 
   const handleOpenLink = () => {
     if (job.apply_link) {
       Linking.openURL(job.apply_link);
     }
+    setShowDetails(true);
   };
 
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>Title: {job.job_title}</Text>
       <Text style={styles.company}>Company: {job.company_name}</Text>
+      <Text style={styles.title}>Title: {job.job_title}</Text>
       <Text style={styles.detail}>Location: {job.location}</Text>
        <Text style={styles.detail}>Job Type: {job.job_type}</Text>
+        <Text style={styles.detail}>Date Posted: {job.date_posted}</Text>
        <Text style={styles.detail}>Description: {job.description}</Text>
       <Text style={styles.detail}>Salary: {job.salary_formatted || 'Not specified'}</Text>
       <Text style={styles.detail}>Description: {job.description}</Text>
-      <Text style={styles.detail}>Date Posted: {job.date_posted}</Text>
+     
 
-      <TouchableOpacity onPress={handleApplyClick}>
-        <Text style={styles.applyLink}>Apply Here</Text>
-      </TouchableOpacity>
+     
 
-      <Modal
-        visible={showDetails}
-        animationType="slide"
-        transparent
-        onRequestClose={handleCloseDetails}
-      >
+    
         <View style={styles.overlay}>
           <View style={styles.modal}>
             <ScrollView>
-              <Text style={styles.modalTitle}>{job.job_title}</Text>
-              <Text style={styles.company}>Company: {job.company_name}</Text>
+            <Text style={styles.company}>Company: {job.company_name}</Text>
+                <Text style={styles.modalTitle}>{job.job_title}</Text>
               <Text style={styles.detail}>Job Type: {job.job_type}</Text>
               <Text style={styles.detail}>Location: {job.location}</Text>
+               <Text style={styles.detail}>Date Posted: {job.date_posted}</Text>
                 <Text style={styles.detail}>Description: {job.description_text}</Text>
                <Text style={styles.detail}>Salary: {job.salary_formatted || 'Not specified'}</Text>
-              <Text style={styles.detail}>Date Posted: {job.date_posted}</Text>
               <Text style={styles.detail}>Benefits: {job.benefits}</Text>
-
               <View style={styles.buttonContainer}>
                 <TouchableOpacity onPress={handleOpenLink} style={styles.applyButton}>
                   <Text style={styles.buttonText}>Proceed to Apply</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleCloseDetails} style={styles.closeButton}>
-                  <Text style={styles.buttonText}>Close</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
           </View>
         </View>
-      </Modal>
     </View>
   );
 };
@@ -126,12 +109,6 @@ const styles = StyleSheet.create({
   },
   applyButton: {
     backgroundColor: '#007BFF',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 6,
-  },
-  closeButton: {
-    backgroundColor: '#FF0000',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 6,

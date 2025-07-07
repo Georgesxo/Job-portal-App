@@ -14,17 +14,17 @@ export default function JobDetailsScreen({ route, navigation }) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>{job.title}</Text>
       <Text style={styles.company}>{job.company}</Text>
+      <Text style={styles.title}>{job.title}</Text>
        <Text style={styles.location}>{job.location}</Text>
          <Text style={styles.type}>{job.type}</Text>
+           <Text style={styles.date}>{job.date}</Text>
       <Text style={styles.description}>{job.description}</Text>
        <Text style={styles.salary}>{job.salary}</Text>
-       <Text style={styles.Date}>{job.Date}</Text>
-       <Text style={styles.Benefits}>{job.Benefits}</Text>
+       <Text style={styles.benefits}>{job.benefits}</Text>
       {job.link ? (
         <TouchableOpacity onPress={() => Linking.openURL(job.link)}>
-          <Text style={styles.link}>Apply / View More</Text>
+          <Text style={styles.link}>Proceed to apply</Text>
         </TouchableOpacity>
       ) : null}
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -36,40 +36,64 @@ export default function JobDetailsScreen({ route, navigation }) {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
+    padding: 40,
     backgroundColor: '#f9f9f9',
     alignItems: 'center',
     flexGrow: 1,
     justifyContent: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 18,
     color: '#2c3e50',
-    fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
   },
   company: {
-    fontSize: 18,
+    fontSize: 24,
+    color: '#34495e',
+    marginBottom: 10,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+   benefits: {
+    fontSize: 16,
     color: '#34495e',
     marginBottom: 10,
     textAlign: 'center',
   },
-  description: {
+   location: {
     fontSize: 16,
-    color: '#7f8c8d',
-    marginBottom: 20,
+    color: '#34495e',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+   type: {
+    fontSize: 16,
+    color: '#34495e',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+   date: {
+    fontSize: 16,
+    color: '#34495e',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  salary: {
+    fontSize: 16,
+    color: '#34495e',
+    marginBottom: 10,
     textAlign: 'center',
   },
   link: {
     color: '#3498db',
     fontSize: 16,
     textDecorationLine: 'underline',
-    marginBottom: 20,
-    textAlign: 'center',
+    paddingBottom: 10,
+    alignSelf: 'center',
   },
   backButton: {
-    backgroundColor: '#2c3e50',
+    backgroundColor: '#e0e0e0',
     borderRadius: 4,
     paddingVertical: 10,
     paddingHorizontal: 24,
