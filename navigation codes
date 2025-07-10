@@ -1,0 +1,9 @@
+{({ navigation }) =>
+  activePage === 'post-job' ? (
+    <PostJob navigation={navigation} />
+  ) : activePage === 'job-details' ? (
+    <JobDetailsScreen navigation={navigation} />
+  ) : (
+    renderMainContent(navigation)
+  )
+}

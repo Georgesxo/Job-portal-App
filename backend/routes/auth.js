@@ -11,14 +11,14 @@ router.post('/signup', async (req, res) => {
     return res.status(400).json({ message: 'All fields required' });
   }
   try {
-    const existing = await User.findOne({ $or: [{ studentId }, { email }] });
+    const existing = await User.findOne({ $or: [{ studentId }, { email },{ password }] });
     if (existing) return res.status(400).json({ message: 'User already exists' });
 
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({ studentId, email, password: hashed });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { studentId: user.studentId, email: user.email } });
+    res.json({ token, user: { studentId: user.studentId, email: user.email,  password: user.password } });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -26,8 +26,8 @@ router.post('/signup', async (req, res) => {
 
 // Sign In
 router.post('/signin', async (req, res) => {
-  const { studentId, password } = req.body;
-  if (!studentId || !password) {
+  const { studentId, email, password } = req.body;
+  if (!studentId || !password || !email) {
     return res.status(400).json({ message: 'All fields required' });
   }
   try {
@@ -38,7 +38,7 @@ router.post('/signin', async (req, res) => {
     if (!match) return res.status(400).json({ message: 'Invalid credentials' });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { studentId: user.studentId, email: user.email } });
+    res.json({ token, user: { studentId: user.studentId, email: user.email, password: user.password } });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }

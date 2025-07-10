@@ -21,7 +21,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.Job-portal"
+      "package": "com.georgeaw.jobportal"
     },
     "web": {
       "favicon": "./assets/favicon.png"

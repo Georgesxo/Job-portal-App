@@ -9,20 +9,21 @@ const SignUpScreen = () => {
 
   const [studentId, setStudentId] = useState('');
   const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
   const [isSigningUp, setIsSigningUp] = useState(false);
 
   const handleSignUp = async () => {
-    if (!studentId || !email) {
+    if (!studentId || !email || !password) {
       Alert.alert('Error', 'Please fill all fields');
       return;
     }
     setIsSigningUp(true);
     try {
       // Replace with your real backend endpoint
-      const response = await fetch('https://your-backend.com/api/signup', {
+const response = await fetch('https://your-backend-url.com/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId, email }),
+        body: JSON.stringify({ studentId, email, password }),
       });
       const data = await response.json();
       if (response.ok) {
@@ -62,6 +63,17 @@ const SignUpScreen = () => {
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
+          />
+        </View>
+          <View style={styles.inputGroup}>
+          <TextInput
+            placeholder="Password"
+            placeholderTextColor="#4574a1"
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            autoCapitalize="none"
+            keyboardType="Password"
           />
         </View>
         <View style={styles.buttonWrapper}>

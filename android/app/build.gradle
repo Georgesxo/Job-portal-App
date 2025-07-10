@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.anonymous.Jobportal'
+    namespace 'com.georgeaw.jobportal'
     defaultConfig {
-        applicationId 'com.anonymous.Jobportal'
+        applicationId 'com.georgeaw.jobportal'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

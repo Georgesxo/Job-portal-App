@@ -1,13 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import MainLayout from '../components/MainLayout';
 
 export default function HomeScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome to Job Board</Text>
+      <MainLayout>
+   <Text style={styles.title}>Welcome to Job Board</Text>
       <Text style={styles.subtitle}>
       </Text>
-    </View>
+      </MainLayout>
   );
 }
 

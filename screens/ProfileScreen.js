@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Switch, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { Picker } from '@react-native-picker/picker';
+//import { Picker } from '@react-native-picker/picker';
 
 
 export default function ProfileScreen() {
@@ -500,12 +500,7 @@ const handleEducationFieldChange = (id, field, value) => {
     <Text style={styles.addWorkExperience}>Add work experience +</Text>
   </TouchableOpacity>
 </View>
-
-     
-
-
-
- <View style={styles.educationWrapper}>
+<View style={styles.educationWrapper}>
   {educationSections.map((section) => (
     <View key={section.id} style={styles.educationSection}>
       <View style={styles.educationLabel}>

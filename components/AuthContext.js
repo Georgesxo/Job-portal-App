@@ -17,21 +17,31 @@ export default function AuthProvider({ children }) {
   };
 
   const logout = () => setIsAdmin(false);
+
   const signIn = (token, user) => {
     setToken(token);
     setUser(user);
   };
- const signOut = () => {
+
+  const signOut = () => {
     setToken(null);
     setUser(null);
   };
-  
+
+  // Combine all context values into one object
+  const authValues = {
+    isAdmin,
+    login,
+    logout,
+    user,
+    token,
+    signIn,
+    signOut,
+  };
+
   return (
-    <AuthContext.Provider value={{ isAdmin, login, logout }}>
+    <AuthContext.Provider value={authValues}>
       {children}
-      <AuthContext.Provider value={{ user, token, signIn, signOut }}>
-      {children}
-    </AuthContext.Provider>
     </AuthContext.Provider>
   );
 }

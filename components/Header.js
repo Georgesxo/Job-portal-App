@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext} from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, Modal } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { AuthContext } from '../components/AuthContext';
 
 export default function Header({ onEditProfile, onPostJob }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 const navigation = useNavigation();
 const { signOut } = useContext(AuthContext);
-signOut();
-navigation.replace('SignIn');
  
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -43,7 +42,10 @@ navigation.replace('SignIn');
             <TouchableOpacity onPress={() => { setIsDropdownOpen(false); /* settings logic */ }}>
               <Text style={styles.dropdownItem}>Settings</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setIsDropdownOpen(false); /* logout logic */ }}>
+           <TouchableOpacity
+              onPress={() => {setIsDropdownOpen(false); signOut();
+                navigation.replace('SignIn'); }}
+                  >
               <Text style={styles.dropdownItem}>Log Out</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => { setIsDropdownOpen(false); onPostJob(); }}>

@@ -1,4 +1,4 @@
-package com.anonymous.Jobportal
+package com.georgeaw.jobportal
 
 import android.os.Build
 import android.os.Bundle
