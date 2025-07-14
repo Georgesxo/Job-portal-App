@@ -1,8 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import MainLayout from '../components/MainLayout';
+import { useNavigation } from '@react-navigation/native';
+
 
 export default function HomeScreen() {
+  const navigation = useNavigation();
+
   return (
       <MainLayout>
    <Text style={styles.title}>Welcome to Job Board</Text>
@@ -25,6 +29,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#2c3e50',
     marginBottom: 16,
+    paddingBottom: 20,
     textAlign: 'center',
   },
   subtitle: {

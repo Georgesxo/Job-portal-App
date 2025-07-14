@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Switch, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-//import { Picker } from '@react-native-picker/picker';
+import { Picker } from '@react-native-picker/picker';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function ProfileScreen() {
@@ -249,6 +250,8 @@ const handleEducationFieldChange = (id, field, value) => {
   );
 };
   return (
+      <SafeAreaView edges={['top']} style={styles.safeArea}>
+        <SafeAreaView edges={['bottom']} style={styles.safeArea}>
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>Edit your Professional Profile</Text>
       <TouchableOpacity style={styles.profilePictureUpload} onPress={pickImage}>
@@ -641,12 +644,18 @@ const handleEducationFieldChange = (id, field, value) => {
       <TouchableOpacity style={styles.button} onPress={handleSaveProfile}>
         <Text style={styles.buttonText}>Save</Text>
       </TouchableOpacity>
-      
     </ScrollView>
+    </SafeAreaView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+   safeArea: {
+    backgroundColor: 'grey', 
+    paddingBottom: 10,
+    paddingTop: 10,
+  },
   container: {
     padding: 24,
     backgroundColor: '#f9f9f9',

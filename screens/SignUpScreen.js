@@ -2,48 +2,55 @@ import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from '../components/AuthContext';
+import { Ionicons } from '@expo/vector-icons'; 
 
 const SignUpScreen = () => {
   const navigation = useNavigation();
-  const { signIn } = useContext(AuthContext);
+  const { signUp } = useContext(AuthContext);
 
   const [studentId, setStudentId] = useState('');
   const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
   const [isSigningUp, setIsSigningUp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSignUp = async () => {
-    if (!studentId || !email || !password) {
-      Alert.alert('Error', 'Please fill all fields');
-      return;
+ const handleSignUp = async () => {
+  if (!studentId || !email || !password) {
+    Alert.alert('Error', 'Please fill all fields');
+    return;
+  }
+
+  setIsSigningUp(true);
+
+  try {
+    const response = await fetch('http://10.0.2.2:5000/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studentId, email, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      signUp(data.token, data.user);
+      Alert.alert('Success', 'You have successfully signed up!');
+      navigation.navigate('Home');
+    } else {
+      Alert.alert('Sign Up Failed', data.message || 'Unknown error');
     }
-    setIsSigningUp(true);
-    try {
-      // Replace with your real backend endpoint
-const response = await fetch('https://your-backend-url.com/api/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId, email, password }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        // Optionally auto-login after sign up
-        signIn(data.token, data.user); // Save token/user in context
-        navigation.replace('Home');
-      } else {
-        Alert.alert('Sign Up Failed', data.message || 'Unknown error');
-      }
-    } catch (err) {
-      Alert.alert('Network Error', 'Could not connect to server');
-    }
-    setIsSigningUp(false);
-  };
+  } catch (err) {
+    console.error('Fetch error:', err); // 🔍 This will show real error in console
+    Alert.alert('Network Error', err.message);
+  }
+
+  setIsSigningUp(false);
+};
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Sign up</Text>
+          <Text style={styles.headerTitle}>Sign Up</Text>
         </View>
         <View style={styles.inputGroup}>
           <TextInput
@@ -66,16 +73,22 @@ const response = await fetch('https://your-backend-url.com/api/signup', {
           />
         </View>
           <View style={styles.inputGroup}>
-          <TextInput
-            placeholder="Password"
-            placeholderTextColor="#4574a1"
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            autoCapitalize="none"
-            keyboardType="Password"
-          />
-        </View>
+  <TextInput
+    placeholder="Password"
+    placeholderTextColor="#4574a1"
+    style={styles.input}
+    value={password}
+    onChangeText={setPassword}
+    autoCapitalize="none"
+    secureTextEntry={!showPassword}
+  />
+  <TouchableOpacity
+    style={styles.eyeIcon}
+    onPress={() => setShowPassword(!showPassword)}
+  >
+    <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="#4574a1" />
+  </TouchableOpacity>
+</View>
         <View style={styles.buttonWrapper}>
           <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={isSigningUp}>
             <Text style={styles.buttonText}>{isSigningUp ? 'Signing Up...' : 'Continue'}</Text>
@@ -84,7 +97,7 @@ const response = await fetch('https://your-backend-url.com/api/signup', {
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account?</Text>
           <TouchableOpacity onPress={() => navigation.replace('SignIn')}>
-            <Text style={styles.footerLink}>Sign in</Text>
+            <Text style={styles.footerLink}>Sign In</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -103,16 +116,15 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'space-between',
   },
-  header: {
+   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 150,
+    paddingTop: 250,
     paddingBottom: 20,
     backgroundColor: '#f8fafc',
-    marginBottom:-50,
+    marginBottom: -50,
   },
-  
   headerTitle: {
     flex: 1,
     fontSize: 28,
@@ -171,6 +183,11 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     marginTop: 100,
     marginBottom: 60,
-  
+   },
+    eyeIcon: {
+    position: 'absolute',
+    right: 20,
+    top: 16,
+    zIndex: 10,
   },
 });

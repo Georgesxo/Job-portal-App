@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import { JobsContext } from './JobsProvider';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 
@@ -37,6 +38,8 @@ export default function PostJob({ navigation }) {
   };
 
   return (
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+            <SafeAreaView edges={['bottom']} style={styles.safeArea}>
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>Post a New Job</Text>
       <View style={styles.form}>
@@ -112,11 +115,18 @@ export default function PostJob({ navigation }) {
           <Text style={styles.buttonText}>Post Job</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+        </ScrollView>
+    </SafeAreaView>
+          </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+   safeArea: {
+    backgroundColor: 'grey', 
+    paddingBottom: 10,
+    paddingTop: 10,
+  },
   container: {
     padding: 24,
      marginBottom: 80,

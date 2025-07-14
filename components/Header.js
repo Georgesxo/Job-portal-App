@@ -5,13 +5,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from '../components/AuthContext';
 
+
 export default function Header({ onEditProfile, onPostJob }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 const navigation = useNavigation();
 const { signOut } = useContext(AuthContext);
  
   return (
-    <SafeAreaView edges={['top']} style={styles.safeArea}>
+    <SafeAreaView edges={['top and bottom']} style={styles.safeArea}>
       <View style={styles.header}>
           <TouchableOpacity style={styles.iconButton}>
           <Ionicons name="notifications" size={30} color="white"  marginRight="30"/>
@@ -44,13 +45,16 @@ const { signOut } = useContext(AuthContext);
             </TouchableOpacity>
            <TouchableOpacity
               onPress={() => {setIsDropdownOpen(false); signOut();
-                navigation.replace('SignIn'); }}
+                navigation.navigate('signIn'); }}
                   >
               <Text style={styles.dropdownItem}>Log Out</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => { setIsDropdownOpen(false); onPostJob(); }}>
-              <Text style={styles.dropdownItem}>Post Job</Text>
-            </TouchableOpacity>
+                    <TouchableOpacity onPress={() => {
+            setIsDropdownOpen(false);
+            navigation.navigate('PostJob'); 
+          }}>
+            <Text style={styles.dropdownItem}>Post Job</Text>
+          </TouchableOpacity>
             <TouchableOpacity onPress={() => { setIsDropdownOpen(false); navigation.navigate('AdminLogin'); }}>
               <Text style={styles.dropdownItem}>Admin Panel</Text>
             </TouchableOpacity>
@@ -64,7 +68,7 @@ const { signOut } = useContext(AuthContext);
  
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: 'grey', 
+    backgroundColor: ' dark grey', 
   },
   header: {
     flexDirection: 'row',
@@ -74,7 +78,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     justifyContent: 'space-between',
     alignSelf: 'stretch', // Fill width
-    marginTop: 20, // No margin at the top
+    marginTop: 43, // No margin at the top
+    
   },
   searchBar: {
     flex: 1,
