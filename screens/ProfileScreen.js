@@ -1,19 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Switch, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Switch, Alert, Button} from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useContext } from 'react';
+import { AuthContext } from '../components/AuthContext';
 
 
 export default function ProfileScreen() {
-  const [profilePicture, setProfilePicture] = useState(null);
+  const [profilePicture, setProfilePicture] = useState('');
   const [program, setProgram] = useState('');
   const [yourName, setYourName] = useState('');
   const [yourEmail, setYourEmail] = useState('');
   const [bio, setBio] = useState('');
   const [skills, setSkills] = useState('');
   const [jobType, setJobType] = useState('');
+  const { token, user } = useContext(AuthContext);
+  const [image, setImage] = useState(null);
+  const [selectedValue, setSelectedValue] = useState('java');
   const [socialHandles, setSocialHandles] = useState({
     facebook: '',
     twitter: '',
@@ -23,46 +29,79 @@ export default function ProfileScreen() {
     github: '',
   });
 
-  // For simplicity, experience and education are not fully implemented here.
-  // You can expand with FlatList or custom components as needed.
-
    const [isProfilePage, setIsProfilePage] = useState(false);
   const [_isEditingExperience, _setIsEditingExperience] = useState(false);
   const [_isEditingEducation, _setIsEditingEducation] = useState(false);
 
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-    });
+const handleProfilePictureChange = async () => {
+    try {
+     await ImagePicker.requestMediaLibraryPermissionsAsync();
+const result = await ImagePicker.launchImageLibraryAsync({
+  mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  allowsEditing: true,
+  base64: true,
+  quality: 1,
+});
 
-    if (!result.canceled) {
-      setProfilePicture(result.assets[0].uri);
+      if (!result.canceled) {
+        const base64Data = result.assets[0].base64;
+        setProfilePicture(`data:image/jpeg;base64,${base64Data}`);
+      }
+    } catch (error) {
+      console.error('Image picker error:', error);
     }
   };
-  const handleSocialHandleChange = (platform, value) => {
-    setSocialHandles((prev) => ({ ...prev, [platform]: value }));
+
+  const handleResumeUpload = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*', // or 'application/pdf' for just PDFs
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+
+      if (result.type === 'success') {
+        console.log(`Selected file: ${result.name}`);
+        Alert.alert('Success', `File "${result.name}" selected successfully!`);
+      }
+    } catch (error) {
+      console.error('Document Picker Error:', error);
+      Alert.alert('Error', 'Something went wrong while picking the file.');
+    }
+  };
+const handleSaveProfile = async () => {
+  const payload = {
+    profilePicture,
+    program,
+    yourName,
+    yourEmail,
+    bio,
+    skills,
+    jobType,
+    socialHandles,
+    experiences: experienceSections.map(sec => sec.savedData),
+    education: educationSections.map(sec => sec.savedData),
   };
 
-  const handleSaveProfile = () => {
-    const profileData = {
-      profilePicture,
-      program,
-      yourName,
-      yourEmail,
-      bio,
-      skills,
-      experience,
-      education,
-      jobType,
-      socialHandles,
-    };
-    console.log("Profile data:", profileData);
-    alert("Profile saved successfully!");
-    setIsProfilePage(false);
-  };
+  try {
+    const response = await fetch('http://10.0.2.2:5000/api/profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+    console.log('✅ Profile saved to MongoDB:', result);
+    alert('Profile saved!');
+  } catch (err) {
+    console.error('❌ Save profile failed:', err);
+    alert('Failed to save profile');
+     setIsProfilePage(false);
+  }
+};
 
   const addExperienceSection = () => {
     const newId = experienceSections.length;
@@ -75,7 +114,7 @@ const [experienceSections, setExperienceSections] = useState([
   {
     id: 0,
     isEditing: true,
-    savedData: {}, // <-- savedData is null here
+    savedData: {}, 
     isExpanded: false,
   },
 ]);
@@ -134,7 +173,6 @@ const [experienceSections, setExperienceSections] = useState([
         : section
     ));
 
-    // Ensure the container expands by dynamically adding/removing a CSS class
     const container = document.querySelector(`.experience-section[data-id='${id}'] .description-container`);
     if (container) {
       container.classList.toggle('expanded');
@@ -155,10 +193,6 @@ const handleFieldChange = (id, field, value) => {
     )
   );
 };
-
-
- 
- 
   const addEducationSection = () => {
     const newId = educationSections.length;
     setEducationSections([
@@ -170,7 +204,7 @@ const [educationSections, setEducationSections] = useState([
   {
     id: 0,
     isEditing: true,
-    savedData: {}, // <-- savedData is null here
+    savedData: {}, 
     isExpanded: false,
   },
 ]);
@@ -227,8 +261,6 @@ const [educationSections, setEducationSections] = useState([
         ? { ...section, isExpanded: !section.isExpanded } 
         : section
     ));
-
-    // Ensure the container expands by dynamically adding/removing a CSS class
     const container = document.querySelector(`.education-section[data-id='${id}'] .description-container`);
     if (container) {
       container.classList.toggle('expanded');
@@ -254,7 +286,7 @@ const handleEducationFieldChange = (id, field, value) => {
         <SafeAreaView edges={['bottom']} style={styles.safeArea}>
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>Edit your Professional Profile</Text>
-      <TouchableOpacity style={styles.profilePictureUpload} onPress={pickImage}>
+      <TouchableOpacity style={styles.profilePictureUpload} onPress={handleProfilePictureChange}>
         {profilePicture ? (
           <Image source={{ uri: profilePicture }} style={styles.profilePictureImage} />
         ) : (
@@ -640,6 +672,11 @@ const handleEducationFieldChange = (id, field, value) => {
     <Text style={styles.addEducation}>Add education +</Text>
   </TouchableOpacity>
 </View>
+   <Text style={styles.resume}>Upload your Resume/CV</Text>
+     <TouchableOpacity style={styles.SelectFileButton} onPress={handleResumeUpload}>
+  <Text style={styles.SelectFileButtonText}>Select File</Text>
+</TouchableOpacity>
+
 
       <TouchableOpacity style={styles.button} onPress={handleSaveProfile}>
         <Text style={styles.buttonText}>Save</Text>
@@ -651,11 +688,7 @@ const handleEducationFieldChange = (id, field, value) => {
 }
 
 const styles = StyleSheet.create({
-   safeArea: {
-    backgroundColor: 'grey', 
-    paddingBottom: 10,
-    paddingTop: 10,
-  },
+  
   container: {
     padding: 24,
     backgroundColor: '#f9f9f9',
@@ -864,9 +897,6 @@ const styles = StyleSheet.create({
     textAlign: 'Right',
     marginLeft: 25,
   },
-
-
-
    educationWrapper: {
     width: '105%',
     maxWidth: 1200,
@@ -995,6 +1025,27 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 30,
     textAlign: 'Right',
-    marginLeft: 25,
+  marginLeft: 25,
   },
-});
+  SelectFileButton: {
+    alignSelf: "flex-start",
+    backgroundColor: "hsla(0, 0%, 88%, 1.00)", // `color` is for text, not buttons
+    width: 350,
+    padding: 10,
+    borderRadius: 5,
+    marginLeft: 5,
+    marginBottom: 30,
+    marginTop: 15,
+    },
+  SelectFileButtonText: {
+    color: "#2196F3",
+    marginLeft: 5,
+  },
+  resume: {
+    alignSelf: 'flex-start',
+    fontWeight: 'bold',
+     marginLeft: 30,
+     paddingDown: 80,
+    marginTop: -20,
+  },
+}); 

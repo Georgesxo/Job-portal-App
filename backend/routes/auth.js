@@ -43,5 +43,39 @@ router.post('/signin', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.sendStatus(401);
 
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
+
+// Save or update profile
+router.post('/', authenticateToken, async (req, res) => {
+  try {
+    const existing = await Profile.findOne({ userId: req.user.id });
+    if (existing) {
+      const updated = await Profile.findOneAndUpdate(
+        { userId: req.user.id },
+        req.body,
+        { new: true }
+      );
+      return res.json(updated);
+    }
+
+    const profile = await Profile.create({
+      ...req.body,
+      userId: req.user.id
+    });
+    res.json(profile);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error saving profile' });
+  }
+});
 module.exports = router;

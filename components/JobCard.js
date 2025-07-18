@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet, Linking, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const JobCard = ({ job }) => {
   const [showDetails, setShowDetails] = useState(false);
@@ -13,6 +14,8 @@ const JobCard = ({ job }) => {
   };
 
   return (
+     <SafeAreaView edges={['top']} style={styles.safeArea}>
+              <SafeAreaView edges={['bottom']} style={styles.safeArea}>
     <View style={styles.card}>
       <Text style={styles.company}>Company: {job.company_name}</Text>
       <Text style={styles.title}>Title: {job.job_title}</Text>
@@ -47,6 +50,8 @@ const JobCard = ({ job }) => {
           </View>
         </View>
     </View>
+    </SafeAreaView>
+     </SafeAreaView>
   );
 };
 
@@ -65,6 +70,11 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
+  safeArea: {
+    backgroundColor: 'grey', 
+    paddingBottom: 10,
+    paddingTop: 10,
+  },
   title: {
     fontSize: 20,
     fontWeight: '700',
@@ -76,7 +86,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   detail: {
-    fontSize: 14,
+    fontSize: 15,
     marginBottom: 2,
   },
   applyLink: {

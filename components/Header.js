@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.2)',
-    paddingTop: 100,
+    paddingTop: 80,
     paddingRight: 1,
   },
   dropdownMenu: {

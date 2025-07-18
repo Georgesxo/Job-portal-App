@@ -2,20 +2,21 @@ import React, { useContext } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; // Add this import
 import { JobsContext } from './JobsProvider';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
+import MainLayout from '../components/MainLayout';
 export default function JobsList() {
   const { jobs } = useContext(JobsContext);
   const navigation = useNavigation(); // Add this line
 
   const renderJob = ({ item }) => (
     <View style={styles.jobCard}>
-      <Text style={styles.company}>{item.company}</Text>
-      <Text style={styles.jobTitle}>{item.title}</Text>
-      <Text style={styles.location}>{item.location}</Text>
-      <Text style={styles.type}>{item.type}</Text>
-        <Text style={styles.salary}>{item.salary}</Text>
-          <Text style={styles.date}>{item.date}</Text>
-      <Text style={styles.description}>
+      <Text style={styles.company}>Company: {item.company}</Text>
+      <Text style={styles.jobTitle}>Title: {item.title}</Text>
+      <Text style={styles.location}>Location: {item.location}</Text>
+      <Text style={styles.type}>Type: {item.type}</Text>
+        <Text style={styles.salary}>Salary: {item.salary}</Text>
+          <Text style={styles.date}>Date: {item.date}</Text>
+      <Text style={styles.description}>Description: 
         {item.description && item.description.length > 80
           ? item.description.substring(0, 80) + '...'
           : item.description}
@@ -34,20 +35,26 @@ export default function JobsList() {
     );
   }
 
-  return (
+  return ( 
+      <MainLayout>
     <FlatList
       data={jobs}
       keyExtractor={(item, idx) => item.id?.toString() || idx.toString()}
       renderItem={renderJob}
       contentContainerStyle={styles.listContent}
     />
+    </MainLayout>   
   );
 }
-
 const styles = StyleSheet.create({
   listContent: {
     padding: 16,
-    paddingTop: 40,
+    paddingTop: 30,
+  },
+  safeArea: {
+    backgroundColor: 'grey', 
+    paddingBottom: 10,
+    paddingTop: 10,
   },
   jobCard: {
     borderWidth: 1,
@@ -62,44 +69,45 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   jobTitle: {
-    fontSize: 16,
-    color: '#2c3e50',
-    marginBottom: 5,
+    fontSize: 18,
+    color: '#7f8c8d',
+    marginBottom: -1,
    
   },
   company: {
     fontSize: 20,
-    color: '#34495e',
-    marginBottom: 5,
+    color: '#7f8c8d',
+    marginBottom: 17,
     fontWeight: 'bold',
   },
   location: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#7f8c8d',
-    marginBottom: 5,
+    marginBottom: 2,
+    paddingTop: 1,
   },
   salary: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#7f8c8d',
   },
   type: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#7f8c8d',
     marginBottom: 5,
   },
   date: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#7f8c8d',
     marginBottom: 5,
   },
   benefits: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#7f8c8d',
     marginBottom: 5,
   },
   description: {
-    fontSize: 14,
-    color: '#34495e',
+    fontSize: 15,
+    color: '#7f8c8d',
     marginBottom: 8,
   },
   link: {

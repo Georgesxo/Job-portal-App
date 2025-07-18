@@ -3,10 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import {StyleSheet}  from 'react-native';
-
 import JobsProvider from './components/JobsProvider';
 import AuthProvider, { AuthContext } from './components/AuthContext';
-
 import SignUpScreen from './screens/SignUpScreen';
 import SignInScreen from './screens/SignInScreen';
 import HomeScreen from './screens/HomeScreen';

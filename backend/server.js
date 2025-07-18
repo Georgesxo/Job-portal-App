@@ -2,8 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
+const profileRoutes = require('./routes/profile');
 const app = express();
-
 // Load environment variables
 require('dotenv').config();
 
@@ -17,6 +17,7 @@ app.use(cors({
 app.use(express.json());
 
 app.use('/api', authRoutes);
+app.use('/api/profile', profileRoutes);
 
 // Validate MONGO_URI before connecting
 if (!process.env.MONGO_URI) {
