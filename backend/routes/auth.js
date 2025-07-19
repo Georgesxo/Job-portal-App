@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const router = express.Router();
+const path = require('path');
 
 // Sign Up
 router.post('/signup', async (req, res) => {
@@ -55,27 +56,49 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// Save or update profile
-router.post('/', authenticateToken, async (req, res) => {
-  try {
-    const existing = await Profile.findOne({ userId: req.user.id });
-    if (existing) {
-      const updated = await Profile.findOneAndUpdate(
-        { userId: req.user.id },
-        req.body,
-        { new: true }
-      );
-      return res.json(updated);
-    }
+router.post(
+  '/',
+  authenticateToken,
+  upload.fields([
+    { name: 'profilePicture', maxCount: 1 },
+    { name: 'resumeFile', maxCount: 1 }
+  ]),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const formData = req.body;
 
-    const profile = await Profile.create({
-      ...req.body,
-      userId: req.user.id
-    });
-    res.json(profile);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error saving profile' });
+      if (req.files['profilePicture']) {
+        formData.profileImage = req.files['profilePicture'][0].path; // Cloudinary URL
+      }
+
+      if (req.files['resumeFile']) {
+        formData.cvFile = req.files['resumeFile'][0].path; // Cloudinary URL
+      }
+
+      const existing = await Profile.findOne({ userId });
+
+      if (existing) {
+        const updated = await Profile.findOneAndUpdate(
+          { userId },
+          formData,
+          { new: true }
+        );
+        return res.json({ success: true, profile: updated });
+      }
+
+      const profile = await Profile.create({
+        ...formData,
+        userId
+      });
+
+      res.json({ success: true, profile });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, message: 'Server error saving profile' });
+    }
   }
-});
+);
+
 module.exports = router;

@@ -15,7 +15,7 @@ app.use(cors({
   //origin: 'http://your-react-native-app-domain.com', // or use ['http://192.168.x.x:19006'] for dev
 }));
 app.use(express.json());
-
+app.use(express.json({ limit: '10mb' }));
 app.use('/api', authRoutes);
 app.use('/api/profile', profileRoutes);
 

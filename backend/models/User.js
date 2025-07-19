@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
   bio: String,
   skills: String,
   jobType: String,
+  resume: String,
   socialHandles: {
     facebook: String,
     twitter: String,

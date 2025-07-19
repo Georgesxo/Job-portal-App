@@ -4,13 +4,18 @@ import { FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
 import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
+import mime from 'mime';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useContext } from 'react';
 import { AuthContext } from '../components/AuthContext';
 
 
 export default function ProfileScreen() {
-  const [profilePicture, setProfilePicture] = useState('');
+  const [profileImageUri, setProfileImageUri] = useState(null);
+   const [profilePicture, setProfilePicture] = useState('');
+  const [resumeUri, setResumeUri] = useState(null);
+  const [resumeName, setResumeName] = useState(null);
   const [program, setProgram] = useState('');
   const [yourName, setYourName] = useState('');
   const [yourEmail, setYourEmail] = useState('');
@@ -43,63 +48,90 @@ const result = await ImagePicker.launchImageLibraryAsync({
   quality: 1,
 });
 
-      if (!result.canceled) {
-        const base64Data = result.assets[0].base64;
-        setProfilePicture(`data:image/jpeg;base64,${base64Data}`);
-      }
-    } catch (error) {
-      console.error('Image picker error:', error);
+    if (!result.canceled) {
+      const imageAsset = result.assets[0];
+      setProfileImageUri(imageAsset.uri);
     }
-  };
+  } catch (error) {
+    console.error('Image picker error:', error);
+  }
+};
 
-  const handleResumeUpload = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: '*/*', // or 'application/pdf' for just PDFs
-        copyToCacheDirectory: true,
-        multiple: false,
-      });
+// Pick resume (PDF or DOCX)
+const handleResumeUpload = async () => {
+  try {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+      copyToCacheDirectory: true,
+      multiple: false,
+    });
 
-      if (result.type === 'success') {
-        console.log(`Selected file: ${result.name}`);
-        Alert.alert('Success', `File "${result.name}" selected successfully!`);
-      }
-    } catch (error) {
-      console.error('Document Picker Error:', error);
-      Alert.alert('Error', 'Something went wrong while picking the file.');
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const file = result.assets[0];
+      setResumeUri(file.uri); 
+      setResumeName(file.name);
+      Alert.alert('Success', `File "${file.name}" selected successfully!`);
+    } else {
+      Alert.alert('Cancelled', 'No file was selected.');
     }
-  };
+  } catch (error) {
+    console.error('Document Picker Error:', error);
+    Alert.alert('Error', 'Something went wrong while picking the file.');
+  }
+};
+
+// Upload form data to your backend (which will forward to Cloudinary)
 const handleSaveProfile = async () => {
-  const payload = {
-    profilePicture,
-    program,
-    yourName,
-    yourEmail,
-    bio,
-    skills,
-    jobType,
-    socialHandles,
-    experiences: experienceSections.map(sec => sec.savedData),
-    education: educationSections.map(sec => sec.savedData),
-  };
+  if (!profileImageUri || !resumeUri) {
+    Alert.alert('Missing Data', 'Please select both a profile image and a resume file.');
+    return;
+  }
+
+  const formData = new FormData();
+
+  formData.append('profileImage', {
+    uri: profileImageUri,
+    type: mime.getType(profileImageUri),
+    name: `profile.${mime.getExtension(mime.getType(profileImageUri))}`,
+  });
+
+  formData.append('cvFile', {
+    uri: cvUri,
+    type: mime.getType(cvUri),
+    name: `resume.${mime.getExtension(mime.getType(cvUri))}`,
+  });
+
+  // Add other form fields (adjust as needed)
+  formData.append('yourName', yourName);
+  formData.append('yourEmail', yourEmail);
+  formData.append('bio', bio);
+  formData.append('skills', skills);
+  formData.append('jobType', jobType);
+  formData.append('socialHandles', socialHandles);
+  formData.append('program', program);
+
+  formData.append('experiences', JSON.stringify(experienceSections.map(sec => sec.savedData)));
+  formData.append('education', JSON.stringify(educationSections.map(sec => sec.savedData)));
 
   try {
     const response = await fetch('http://10.0.2.2:5000/api/profile', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`, // If you're using auth
       },
-      body: JSON.stringify(payload),
+      body: formData,
     });
 
     const result = await response.json();
-    console.log('✅ Profile saved to MongoDB:', result);
-    alert('Profile saved!');
-  } catch (err) {
-    console.error('❌ Save profile failed:', err);
-    alert('Failed to save profile');
-     setIsProfilePage(false);
+
+    if (result.success) {
+      Alert.alert('Success', 'Profile saved successfully!');
+    } else {
+      Alert.alert('Error', result.message || 'Upload failed');
+    }
+  } catch (error) {
+    console.error('Upload error:', error);
+    Alert.alert('Error', 'An error occurred during upload');
   }
 };
 
@@ -287,8 +319,8 @@ const handleEducationFieldChange = (id, field, value) => {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>Edit your Professional Profile</Text>
       <TouchableOpacity style={styles.profilePictureUpload} onPress={handleProfilePictureChange}>
-        {profilePicture ? (
-          <Image source={{ uri: profilePicture }} style={styles.profilePictureImage} />
+        {profileImageUri ? (
+          <Image source={{ uri: profileImageUri }} style={styles.profilePictureImage} />
         ) : (
           <FontAwesome name="user-circle" style={styles.profilePictureIcon} />
         )}
@@ -674,9 +706,14 @@ const handleEducationFieldChange = (id, field, value) => {
 </View>
    <Text style={styles.resume}>Upload your Resume/CV</Text>
      <TouchableOpacity style={styles.SelectFileButton} onPress={handleResumeUpload}>
-  <Text style={styles.SelectFileButtonText}>Select File</Text>
+  <Text style={styles.uploadButtonText}> {resumeName ? resumeName : 'No CV selected'}
+  </Text>
 </TouchableOpacity>
-
+{resumeName && (
+  <Text style={{ color: 'green', marginTop: 2 }}>
+    ✅ {resumeName} selected
+  </Text>
+)}
 
       <TouchableOpacity style={styles.button} onPress={handleSaveProfile}>
         <Text style={styles.buttonText}>Save</Text>
@@ -1037,7 +1074,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     marginTop: 15,
     },
-  SelectFileButtonText: {
+  uploadButtonText: {
     color: "#2196F3",
     marginLeft: 5,
   },
