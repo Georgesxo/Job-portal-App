@@ -4,6 +4,9 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const router = express.Router();
 const path = require('path');
+const multer = require('multer'); 
+const storage = multer.memoryStorage(); 
+const upload = multer({ storage }); 
 
 // Sign Up
 router.post('/signup', async (req, res) => {

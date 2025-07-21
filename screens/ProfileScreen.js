@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect  } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView, Switch, Alert, Button} from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
 import mime from 'mime';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useContext } from 'react';
 import { AuthContext } from '../components/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CandidateDashboard from '../components/CandidateDashboard';
 
 
 export default function ProfileScreen() {
@@ -23,8 +24,8 @@ export default function ProfileScreen() {
   const [skills, setSkills] = useState('');
   const [jobType, setJobType] = useState('');
   const { token, user } = useContext(AuthContext);
-  const [image, setImage] = useState(null);
-  const [selectedValue, setSelectedValue] = useState('java');
+  const [showDashboard, setShowDashboard] = useState(false);
+const [candidateData, setCandidateData] = useState(null);
   const [socialHandles, setSocialHandles] = useState({
     facebook: '',
     twitter: '',
@@ -33,11 +34,89 @@ export default function ProfileScreen() {
     Website: '',
     github: '',
   });
+const handleSocialHandleChange = (platform, value) => {
+  setSocialHandles((prevHandles) => ({
+    ...prevHandles,
+    [platform]: value,
+  }));
+};
 
-   const [isProfilePage, setIsProfilePage] = useState(false);
   const [_isEditingExperience, _setIsEditingExperience] = useState(false);
   const [_isEditingEducation, _setIsEditingEducation] = useState(false);
 
+// ✅ Load saved data on mount
+useEffect(() => {
+  const loadData = async () => {
+    try {
+      const savedProfileImage = await AsyncStorage.getItem('profileImageUri');
+      const savedResumeUri = await AsyncStorage.getItem('resumeUri');
+      const savedResumeName = await AsyncStorage.getItem('resumeName');
+      const savedProgram = await AsyncStorage.getItem('program');
+      const savedName = await AsyncStorage.getItem('yourName');
+      const savedEmail = await AsyncStorage.getItem('yourEmail');
+      const savedBio = await AsyncStorage.getItem('bio');
+      const savedSkills = await AsyncStorage.getItem('skills');
+      const savedJobType = await AsyncStorage.getItem('jobType');
+      const savedSocialHandles = await AsyncStorage.getItem('socialHandles');
+      const savedExperience = await AsyncStorage.getItem('experienceSections');
+      const savedEducation = await AsyncStorage.getItem('educationSections');
+
+      if (savedProfileImage) setProfileImageUri(savedProfileImage);
+      if (savedResumeUri) setResumeUri(savedResumeUri);
+      if (savedResumeName) setResumeName(savedResumeName);
+      if (savedProgram) setProgram(savedProgram);
+      if (savedName) setYourName(savedName);
+      if (savedEmail) setYourEmail(savedEmail);
+      if (savedBio) setBio(savedBio);
+      if (savedSkills) setSkills(savedSkills);
+      if (savedJobType) setJobType(savedJobType);
+      if (savedSocialHandles) setSocialHandles(JSON.parse(savedSocialHandles));
+      if (savedExperience) setExperienceSections(JSON.parse(savedExperience));
+      if (savedEducation) setEducationSections(JSON.parse(savedEducation));
+    } catch (error) {
+      console.error('Failed to load saved data:', error);
+    }
+  };
+
+  loadData();
+}, []);
+
+// ✅ Save data when it changes
+useEffect(() => {
+  const saveData = async () => {
+    try {
+      await AsyncStorage.setItem('profileImageUri', profileImageUri || '');
+      await AsyncStorage.setItem('resumeUri', resumeUri || '');
+      await AsyncStorage.setItem('resumeName', resumeName || '');
+      await AsyncStorage.setItem('program', program || '');
+      await AsyncStorage.setItem('yourName', yourName || '');
+      await AsyncStorage.setItem('yourEmail', yourEmail || '');
+      await AsyncStorage.setItem('bio', bio || '');
+      await AsyncStorage.setItem('skills', skills || '');
+      await AsyncStorage.setItem('jobType', jobType || '');
+      await AsyncStorage.setItem('socialHandles', JSON.stringify(socialHandles));
+      await AsyncStorage.setItem('experienceSections', JSON.stringify(experienceSections));
+      await AsyncStorage.setItem('educationSections', JSON.stringify(educationSections));
+    } catch (error) {
+      console.error('Failed to save data:', error);
+    }
+  };
+
+  saveData();
+}, [
+  profileImageUri,
+  resumeUri,
+  resumeName,
+  program,
+  yourName,
+  yourEmail,
+  bio,
+  skills,
+  jobType,
+  socialHandles,
+  experienceSections,
+  educationSections,
+]);
 const handleProfilePictureChange = async () => {
     try {
      await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -79,7 +158,6 @@ const handleResumeUpload = async () => {
     Alert.alert('Error', 'Something went wrong while picking the file.');
   }
 };
-
 // Upload form data to your backend (which will forward to Cloudinary)
 const handleSaveProfile = async () => {
   if (!profileImageUri || !resumeUri) {
@@ -93,12 +171,6 @@ const handleSaveProfile = async () => {
     uri: profileImageUri,
     type: mime.getType(profileImageUri),
     name: `profile.${mime.getExtension(mime.getType(profileImageUri))}`,
-  });
-
-  formData.append('cvFile', {
-    uri: cvUri,
-    type: mime.getType(cvUri),
-    name: `resume.${mime.getExtension(mime.getType(cvUri))}`,
   });
 
   // Add other form fields (adjust as needed)
@@ -126,6 +198,8 @@ const handleSaveProfile = async () => {
 
     if (result.success) {
       Alert.alert('Success', 'Profile saved successfully!');
+      await fetchCandidateProfile(); 
+       await AsyncStorage.clear();
     } else {
       Alert.alert('Error', result.message || 'Upload failed');
     }
@@ -134,7 +208,54 @@ const handleSaveProfile = async () => {
     Alert.alert('Error', 'An error occurred during upload');
   }
 };
+const isValidJson = (text) => {
+  try {
+    JSON.parse(text);
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
 
+const fetchCandidateProfile = async () => {
+  try {
+    const url = `http://10.0.2.2:5000/api/candidates/${user._id}`;
+    console.log("📡 Fetching from:", url);
+
+    const response = await fetch(url);
+
+    console.log("📶 Response status:", response.status);
+
+    if (!response.ok) {
+      const text = await response.text(); // Read raw text to inspect it
+      console.error("❌ Server responded with error:", text);
+      throw new Error("Network response was not ok");
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await response.text();
+      console.error("❌ Invalid content type. Got:", contentType, "Response:", text);
+      throw new Error("Expected JSON, got something else");
+    }
+
+    const text = await response.text(); // Read as text first
+
+    if (isValidJson(text)) {
+      const data = JSON.parse(text);
+      console.log("✅ Received profile:", data);
+      setCandidateData(data);
+      setShowDashboard(true);
+    } else {
+      console.error("❌ Response is not valid JSON:", text);
+      setShowDashboard(false);
+    }
+
+  } catch (error) {
+    console.error("Fetch error:", error);
+    setShowDashboard(false);
+  }
+};
   const addExperienceSection = () => {
     const newId = experienceSections.length;
     setExperienceSections([
@@ -151,23 +272,15 @@ const [experienceSections, setExperienceSections] = useState([
   },
 ]);
 
-  const handleSave = (id, e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const savedData = {
-      company: formData.get('company'),
-      title: formData.get('title'),
-      startDate: formData.get('startDate'),
-      endDate: formData.get('endDate'),
-      currentWork: formData.get('currentWork') === 'on',
-      description: formData.get('description')
-    };
+ const handleSave = (id) => {
+  const section = experienceSections.find(sec => sec.id === id);
+  const savedData = section.savedData || {};
 
-    setExperienceSections(experienceSections.map(section => 
-      section.id === id 
-        ? { ...section, isEditing: false, savedData } 
-        : section
-    ));
+  setExperienceSections(experienceSections.map(section =>
+    section.id === id
+      ? { ...section, isEditing: false, savedData }
+      : section
+  ));
   };
 
   const handleRemove = (id) => {
@@ -241,22 +354,15 @@ const [educationSections, setEducationSections] = useState([
   },
 ]);
 
-  const handleEducationSave = (id, e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const savedData = {
-      institution: formData.get('Institution'),
-      degree: formData.get('Degree'),
-      startDate: formData.get('startDate'),
-      endDate: formData.get('endDate'),
-      currentStudy: formData.get('currentWork') === 'on',
-      description: formData.get('description')
-    };
-     setEducationSections(educationSections.map(section => 
-      section.id === id 
-        ? { ...section, isEditing: false, savedData } 
-        : section
-    ));
+ const handleEducationSave = (id) => {
+  const section = educationSections.find(sec => sec.id === id);
+  const savedData = section.savedData || {};
+
+  setEducationSections(educationSections.map(section =>
+    section.id === id
+      ? { ...section, isEditing: false, savedData }
+      : section
+  ));
   };
 
   const handleEducationRemove = (id) => {
@@ -299,8 +405,8 @@ const [educationSections, setEducationSections] = useState([
     }
   };
 const handleEducationFieldChange = (id, field, value) => {
-  setEducationSections(prev =>
-    prev.map(section =>
+  setEducationSections((prev) =>
+    prev.map((section) =>
       section.id === id
         ? {
             ...section,
@@ -317,6 +423,13 @@ const handleEducationFieldChange = (id, field, value) => {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <SafeAreaView edges={['bottom']} style={styles.safeArea}>
     <ScrollView contentContainerStyle={styles.container}>
+      {showDashboard ? (
+      <CandidateDashboard
+        data={candidateData}
+        onEdit={() => setShowDashboard(false)}
+      />
+    ) : (
+      <>
       <Text style={styles.heading}>Edit your Professional Profile</Text>
       <TouchableOpacity style={styles.profilePictureUpload} onPress={handleProfilePictureChange}>
         {profileImageUri ? (
@@ -373,6 +486,7 @@ const handleEducationFieldChange = (id, field, value) => {
         value={skills}
         onChangeText={setSkills}
         placeholder="Add your skills..."
+          multiline
       />
 
       <Text style={styles.label}>Preferred Job Type</Text>
@@ -520,7 +634,7 @@ const handleEducationFieldChange = (id, field, value) => {
             </TouchableOpacity>
 
             <Text style={styles.companyTitle}>
-              {section.savedData.company || 'Untitled Experience'}
+              {section.savedData.company || 'Not specified'}
             </Text>
             <Text>
               <Text style={styles.labelText}>Title: </Text>
@@ -580,8 +694,8 @@ const handleEducationFieldChange = (id, field, value) => {
             <Text style={styles.labelText}>Institution</Text>
             <TextInput
               style={styles.input}
-              placeholder="Company name"
-              value={section.savedData?.Institution || ''}
+              placeholder="Institution name"
+              value={section.savedData?.institution || ''}
               onChangeText={(text) =>
                 handleEducationFieldChange(section.id, 'institution', text)
               }
@@ -590,8 +704,8 @@ const handleEducationFieldChange = (id, field, value) => {
             <Text style={styles.labelText}>Degree</Text>
             <TextInput
               style={styles.input}
-              placeholder="Job title"
-              value={section.savedData?.Degree || ''}
+              placeholder="Degree or Program"
+              value={section.savedData?.degree || ''}
               onChangeText={(text) =>
                 handleEducationFieldChange(section.id, 'degree', text)
               }
@@ -619,13 +733,14 @@ const handleEducationFieldChange = (id, field, value) => {
             />
 
             <View style={styles.checkboxLabel}>
-            <Switch
-            value={section.savedData?.currentSchool || false}
-            onValueChange={(val) => handleEducationFieldChange(section.id, 'currentSchool', val)}
-          />
-            <Text>I currently study here</Text>
-          </View>
-
+              <Switch
+                value={section.savedData?.currentSchool || false}
+                onValueChange={(val) =>
+                  handleEducationFieldChange(section.id, 'currentSchool', val)
+                }
+              />
+              <Text>I currently study here</Text>
+            </View>
 
             <Text style={styles.labelText}>Description</Text>
             <TextInput
@@ -656,8 +771,8 @@ const handleEducationFieldChange = (id, field, value) => {
               <Text style={styles.editBox}>Edit</Text>
             </TouchableOpacity>
 
-            <Text style={styles.institutionDegree}>
-              {section.savedData.institution || 'Untitled Experience'}
+            <Text style={styles.institutionTitle}>
+              {section.savedData.institution || 'Not specified'}
             </Text>
             <Text>
               <Text style={styles.labelText}>Degree: </Text>
@@ -679,9 +794,7 @@ const handleEducationFieldChange = (id, field, value) => {
             </Text>
             {section.savedData.description &&
               section.savedData.description.length > 50 && (
-                <TouchableOpacity
-                  onPress={() => toggleEducationExpand(section.id)}
-                >
+                <TouchableOpacity onPress={() => toggleEducationExpand(section.id)}>
                   <Text style={styles.readMore}>
                     {section.isExpanded ? 'Show less' : 'Read more'}
                   </Text>
@@ -699,7 +812,6 @@ const handleEducationFieldChange = (id, field, value) => {
       </View>
     </View>
   ))}
-
   <TouchableOpacity onPress={addEducationSection}>
     <Text style={styles.addEducation}>Add education +</Text>
   </TouchableOpacity>
@@ -714,10 +826,11 @@ const handleEducationFieldChange = (id, field, value) => {
     ✅ {resumeName} selected
   </Text>
 )}
-
       <TouchableOpacity style={styles.button} onPress={handleSaveProfile}>
         <Text style={styles.buttonText}>Save</Text>
       </TouchableOpacity>
+      </>
+      )}
     </ScrollView>
     </SafeAreaView>
     </SafeAreaView>
@@ -901,7 +1014,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   companyTitle: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#333',
@@ -1030,8 +1143,8 @@ const styles = StyleSheet.create({
   savedEducation: {
     lineHeight: 24,
   },
-  educationDegree: {
-    fontSize: 18,
+  institutionTitle: {
+    fontSize: 15,
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#333',
