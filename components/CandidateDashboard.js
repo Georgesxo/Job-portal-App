@@ -42,7 +42,7 @@ const CandidateDashboard = ({ data, onEdit }) => {
 
       <Text style={styles.dashboardLabel}>Resume:</Text>
       <TouchableOpacity onPress={() => Linking.openURL(data?.cvFileUrl)}>
-        <Text style={styles.resumeLink}>📄 View CV</Text>
+        <Text style={styles.resumeLink}>📄 view Resume</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.editButton} onPress={onEdit}>

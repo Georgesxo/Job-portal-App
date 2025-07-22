@@ -22,7 +22,7 @@ export default function JobDetailsScreen({ route, navigation }) {
        <Text style={styles.location}>Location: {job.location}</Text>
          <Text style={styles.type}> Type: {job.type}</Text>
            <Text style={styles.date}>Date Posted: {job.date}</Text>
-      <Text style={styles.description}>Job Description: {job.description}</Text>
+      <Text style={styles.description} multiline>Job Description: {job.description}</Text>
        <Text style={styles.salary}>Salary: {job.salary}</Text>
        <Text style={styles.benefits}>Benefits: {job.benefits}</Text>
       {job.link ? (
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     color: '#7f8c8d',
-    marginBottom: 10,
+     marginTop: -10,
     textAlign: 'center',
   },
   company: {
@@ -65,45 +65,59 @@ const styles = StyleSheet.create({
    benefits: {
     fontSize: 16,
     color: '#7f8c8d',
-    marginBottom: 10,
+  marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
     textAlign: 'center',
   },
    location: {
     fontSize: 16,
     color: '#7f8c8d',
-    marginBottom: 5,
+   marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
     textAlign: 'center',
     paddingTop:-50,
   },
    type: {
     fontSize: 16,
     color: '#7f8c8d',
-    marginBottom: 10,
+    marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
     textAlign: 'center',
   },
    date: {
     fontSize: 16,
     color: '#7f8c8d',
-    marginBottom: 10,
+   marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
     textAlign: 'center',
   },
   description: {
      fontSize: 16,
     color: '#7f8c8d',
-    marginBottom: 10,
+    marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
     textAlign: 'center',
   },
   salary: {
     fontSize: 16,
     color: '#7f8c8d',
-    marginBottom: 10,
+    marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
     textAlign: 'center',
   },
   link: {
     color: '#3498db',
     fontSize: 16,
     textDecorationLine: 'underline',
-    paddingBottom: 10,
+   marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
     alignSelf: 'center',
   },
   backButton: {

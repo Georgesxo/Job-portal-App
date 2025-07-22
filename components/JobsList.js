@@ -16,7 +16,7 @@ export default function JobsList() {
       <Text style={styles.type}>Type: {item.type}</Text>
         <Text style={styles.salary}>Salary: {item.salary}</Text>
           <Text style={styles.date}>Date: {item.date}</Text>
-      <Text style={styles.description}>Description: 
+      <Text style={styles.description} multiline>Description: 
         {item.description && item.description.length > 80
           ? item.description.substring(0, 80) + '...'
           : item.description}
@@ -69,46 +69,57 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   jobTitle: {
-    fontSize: 18,
+    fontSize: 15,
     color: '#7f8c8d',
     marginBottom: -1,
    
   },
   company: {
-    fontSize: 20,
+    fontSize: 18,
     color: '#7f8c8d',
-    marginBottom: 17,
+    marginBottom: 5,
     fontWeight: 'bold',
   },
   location: {
     fontSize: 15,
     color: '#7f8c8d',
-    marginBottom: 2,
-    paddingTop: 1,
+    marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
   },
   salary: {
     fontSize: 15,
     color: '#7f8c8d',
+    marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
   },
   type: {
     fontSize: 15,
     color: '#7f8c8d',
     marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
   },
   date: {
     fontSize: 15,
     color: '#7f8c8d',
-    marginBottom: 5,
-  },
+     marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,  },
   benefits: {
     fontSize: 15,
     color: '#7f8c8d',
     marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
   },
   description: {
     fontSize: 15,
     color: '#7f8c8d',
-    marginBottom: 8,
+    marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
   },
   link: {
     color: '#3498db',

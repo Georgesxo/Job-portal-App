@@ -38,7 +38,7 @@ const JobCard = ({ job }) => {
               <Text style={styles.detail}>Job Type: {job.job_type}</Text>
               <Text style={styles.detail}>Location: {job.location}</Text>
                <Text style={styles.detail}>Date Posted: {job.date_posted}</Text>
-                <Text style={styles.detail}>Description: {job.description_text}</Text>
+                <Text style={styles.detail} multiline>Description: {job.description_text}</Text>
                <Text style={styles.detail}>Salary: {job.salary_formatted || 'Not specified'}</Text>
               <Text style={styles.detail}>Benefits: {job.benefits}</Text>
               <View style={styles.buttonContainer}>
@@ -78,20 +78,28 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    marginBottom: 4,
+   marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
   },
   company: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 4,
+   marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
   },
   detail: {
     fontSize: 15,
-    marginBottom: 2,
+    marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
   },
   applyLink: {
     color: '#007BFF',
-    marginTop: 12,
+    marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -110,10 +118,14 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 22,
     fontWeight: '700',
-    marginBottom: 12,
+   marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
   },
   buttonContainer: {
-    marginTop: 20,
+  marginBottom: 5,
+    paddingTop: -20,
+    marginTop: -15,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
