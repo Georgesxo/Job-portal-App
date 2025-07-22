@@ -1,28 +1,47 @@
+// components/CandidateDashboard.js
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, Linking, StyleSheet } from 'react-native';
+import { View, Text, Image, TouchableOpacity, Linking, StyleSheet,} from 'react-native';
 
 const CandidateDashboard = ({ data, onEdit }) => {
   return (
     <View style={styles.dashboardContainer}>
-      <Image
-        source={{ uri: data?.profileImageUrl }}
-        style={styles.profileImage}
-      />
+      {data?.profilePictureUrl && (
+        <Image source={{ uri: data.profilePictureUrl }} style={styles.profileImage} />
+      )}
+
+      <Text style={styles.dashboardLabel}>Program of Study:</Text>
+      <Text style={styles.dashboardValue}>{data?.program}</Text>
 
       <Text style={styles.dashboardLabel}>Full Name:</Text>
-      <Text style={styles.dashboardValue}>{data?.fullName}</Text>
+      <Text style={styles.dashboardValue}>{data?.yourName}</Text>
 
       <Text style={styles.dashboardLabel}>Email:</Text>
-      <Text style={styles.dashboardValue}>{data?.email}</Text>
+      <Text style={styles.dashboardValue}>{data?.yourEmail}</Text>
 
       <Text style={styles.dashboardLabel}>Bio:</Text>
       <Text style={styles.dashboardValue}>{data?.bio}</Text>
 
       <Text style={styles.dashboardLabel}>Skills:</Text>
-      <Text style={styles.dashboardValue}>{data?.skills?.join(', ')}</Text>
+      <Text style={styles.dashboardValue}>{data?.skills}</Text>
+
+      {/* Experience */}
+      <Text style={styles.dashboardLabel}>Experience:</Text>
+      {data?.experiences?.map((exp, i) => (
+        <Text key={i} style={styles.dashboardValue}>
+          {exp.title} at {exp.company} ({exp.startDate} - {exp.currentWork ? 'Present' : exp.endDate})
+        </Text>
+      ))}
+
+      {/* Education */}
+      <Text style={styles.dashboardLabel}>Education:</Text>
+      {data?.education?.map((edu, i) => (
+        <Text key={i} style={styles.dashboardValue}>
+          {edu.degree} at {edu.institution} ({edu.startDate} - {edu.currentSchool ? 'Present' : edu.endDate})
+        </Text>
+      ))}
 
       <Text style={styles.dashboardLabel}>Resume:</Text>
-      <TouchableOpacity onPress={() => Linking.openURL(data?.resumeUrl)}>
+      <TouchableOpacity onPress={() => Linking.openURL(data?.cvFileUrl)}>
         <Text style={styles.resumeLink}>📄 View CV</Text>
       </TouchableOpacity>
 

@@ -49,15 +49,16 @@ function AuthNavigator() {
 // --- Main App ---
 export default function App() {
   return (
-    <JobsProvider>
+    
       <AuthProvider>
+        <JobsProvider>
         <NavigationContainer>
           <AuthContext.Consumer>
             {({ token }) => token ? < RootStack /> : <AuthNavigator />}
           </AuthContext.Consumer>
         </NavigationContainer>
+         </JobsProvider>
       </AuthProvider>
-    </JobsProvider>
   );
 }
 const styles = StyleSheet.create({

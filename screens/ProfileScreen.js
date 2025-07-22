@@ -23,7 +23,7 @@ export default function ProfileScreen() {
   const [bio, setBio] = useState('');
   const [skills, setSkills] = useState('');
   const [jobType, setJobType] = useState('');
-  const { token, user } = useContext(AuthContext);
+  const { token, user, isLoadingAuth  } = useContext(AuthContext);
   const [showDashboard, setShowDashboard] = useState(false);
 const [candidateData, setCandidateData] = useState(null);
   const [socialHandles, setSocialHandles] = useState({
@@ -44,44 +44,7 @@ const handleSocialHandleChange = (platform, value) => {
   const [_isEditingExperience, _setIsEditingExperience] = useState(false);
   const [_isEditingEducation, _setIsEditingEducation] = useState(false);
 
-// ✅ Load saved data on mount
-useEffect(() => {
-  const loadData = async () => {
-    try {
-      const savedProfileImage = await AsyncStorage.getItem('profileImageUri');
-      const savedResumeUri = await AsyncStorage.getItem('resumeUri');
-      const savedResumeName = await AsyncStorage.getItem('resumeName');
-      const savedProgram = await AsyncStorage.getItem('program');
-      const savedName = await AsyncStorage.getItem('yourName');
-      const savedEmail = await AsyncStorage.getItem('yourEmail');
-      const savedBio = await AsyncStorage.getItem('bio');
-      const savedSkills = await AsyncStorage.getItem('skills');
-      const savedJobType = await AsyncStorage.getItem('jobType');
-      const savedSocialHandles = await AsyncStorage.getItem('socialHandles');
-      const savedExperience = await AsyncStorage.getItem('experienceSections');
-      const savedEducation = await AsyncStorage.getItem('educationSections');
-
-      if (savedProfileImage) setProfileImageUri(savedProfileImage);
-      if (savedResumeUri) setResumeUri(savedResumeUri);
-      if (savedResumeName) setResumeName(savedResumeName);
-      if (savedProgram) setProgram(savedProgram);
-      if (savedName) setYourName(savedName);
-      if (savedEmail) setYourEmail(savedEmail);
-      if (savedBio) setBio(savedBio);
-      if (savedSkills) setSkills(savedSkills);
-      if (savedJobType) setJobType(savedJobType);
-      if (savedSocialHandles) setSocialHandles(JSON.parse(savedSocialHandles));
-      if (savedExperience) setExperienceSections(JSON.parse(savedExperience));
-      if (savedEducation) setEducationSections(JSON.parse(savedEducation));
-    } catch (error) {
-      console.error('Failed to load saved data:', error);
-    }
-  };
-
-  loadData();
-}, []);
-
-// ✅ Save data when it changes
+  
 useEffect(() => {
   const saveData = async () => {
     try {
@@ -98,10 +61,9 @@ useEffect(() => {
       await AsyncStorage.setItem('experienceSections', JSON.stringify(experienceSections));
       await AsyncStorage.setItem('educationSections', JSON.stringify(educationSections));
     } catch (error) {
-      console.error('Failed to save data:', error);
+      console.error('Failed to save draft', error);
     }
   };
-
   saveData();
 }, [
   profileImageUri,
@@ -158,7 +120,114 @@ const handleResumeUpload = async () => {
     Alert.alert('Error', 'Something went wrong while picking the file.');
   }
 };
-// Upload form data to your backend (which will forward to Cloudinary)
+// ✅ Define fetchCandidateProfile BEFORE handleSaveProfile
+useEffect(() => {
+  const loadProfile = async () => {
+    // ✅ Wait until auth is fully restored
+    if (isLoadingAuth) {
+      console.log("⏳ Loading authentication...");
+      return;
+    }
+
+    // ✅ Now check if user is actually logged in
+    if (!token || !user?.id) {
+      console.log("❌ Not logged in or missing user ID");
+      setShowDashboard(false);
+      return;
+    }
+
+    try {
+      const url = `http://10.0.2.2:5000/api/candidates/${user.id}`;
+      console.log("📡 Fetching profile:", url);
+
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("✅ Profile loaded:", data);
+        setCandidateData(data);
+        setShowDashboard(true);
+        return; // ✅ Exit early — don’t load draft
+      } else {
+        console.log("❌ No saved profile yet (status:", response.status, ")");
+      }
+    } catch (error) {
+      console.error("🚨 Fetch error:", error);
+    }
+
+    // 🔁 Only run this if no server profile found OR error
+    try {
+      const savedProfileImage = await AsyncStorage.getItem('profileImageUri');
+      if (savedProfileImage) setProfileImageUri(savedProfileImage);
+      // ... load other draft fields ...
+    } catch (error) {
+      console.error('Failed to load draft', error);
+    }
+    // 🔁 Only run this if no profile found OR error
+    try {
+      const savedProfileImage = await AsyncStorage.getItem('profileImageUri');
+      const savedResumeUri = await AsyncStorage.getItem('resumeUri');
+      const savedResumeName = await AsyncStorage.getItem('resumeName');
+      const savedProgram = await AsyncStorage.getItem('program');
+      const savedName = await AsyncStorage.getItem('yourName');
+      const savedEmail = await AsyncStorage.getItem('yourEmail');
+      const savedBio = await AsyncStorage.getItem('bio');
+      const savedSkills = await AsyncStorage.getItem('skills');
+      const savedJobType = await AsyncStorage.getItem('jobType');
+      const savedSocialHandles = await AsyncStorage.getItem('socialHandles');
+      const savedExperience = await AsyncStorage.getItem('experienceSections');
+      const savedEducation = await AsyncStorage.getItem('educationSections');
+
+      if (savedProfileImage) setProfileImageUri(savedProfileImage);
+      if (savedResumeUri) setResumeUri(savedResumeUri);
+      if (savedResumeName) setResumeName(savedResumeName);
+      if (savedProgram) setProgram(savedProgram);
+      if (savedName) setYourName(savedName);
+      if (savedEmail) setYourEmail(savedEmail);
+      if (savedBio) setBio(savedBio);
+      if (savedSkills) setSkills(savedSkills);
+      if (savedJobType) setJobType(savedJobType);
+      if (savedSocialHandles) setSocialHandles(JSON.parse(savedSocialHandles));
+      if (savedExperience) setExperienceSections(JSON.parse(savedExperience));
+      if (savedEducation) setEducationSections(JSON.parse(savedEducation));
+    } catch (error) {
+      console.error('Failed to load draft', error);
+    }
+  };
+  loadProfile();
+}, [token, user?.id, isLoadingAuth]); // ✅ Watch all three
+
+const fetchCandidateProfile = async () => {
+    try {
+      if (!token || !user?.id) {
+        console.log("❌ Cannot fetch: no token or user ID");
+        return false;
+      }
+
+      const url = `http://10.0.2.2:5000/api/candidates/${user.id}`;
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCandidateData(data);
+        setShowDashboard(true);
+        return true;
+      } else {
+        console.log("❌ Failed to refetch profile:", response.status);
+        setShowDashboard(false);
+        return false;
+      }
+    } catch (error) {
+      console.error("🔁 Fetch failed after save:", error);
+      setShowDashboard(false);
+      return false;
+    }
+  };
+
 const handleSaveProfile = async () => {
   if (!profileImageUri || !resumeUri) {
     Alert.alert('Missing Data', 'Please select both a profile image and a resume file.');
@@ -167,21 +236,25 @@ const handleSaveProfile = async () => {
 
   const formData = new FormData();
 
-  formData.append('profileImage', {
+  formData.append('profilePicture', {
     uri: profileImageUri,
     type: mime.getType(profileImageUri),
     name: `profile.${mime.getExtension(mime.getType(profileImageUri))}`,
   });
 
-  // Add other form fields (adjust as needed)
+  formData.append('resumeFile', {
+    uri: resumeUri,
+    type: mime.getType(resumeUri),
+    name: resumeName || `resume.${mime.getExtension(mime.getType(resumeUri))}`,
+  });
+
   formData.append('yourName', yourName);
   formData.append('yourEmail', yourEmail);
   formData.append('bio', bio);
   formData.append('skills', skills);
   formData.append('jobType', jobType);
-  formData.append('socialHandles', socialHandles);
+  formData.append('socialHandles', JSON.stringify(socialHandles));
   formData.append('program', program);
-
   formData.append('experiences', JSON.stringify(experienceSections.map(sec => sec.savedData)));
   formData.append('education', JSON.stringify(educationSections.map(sec => sec.savedData)));
 
@@ -189,74 +262,47 @@ const handleSaveProfile = async () => {
     const response = await fetch('http://10.0.2.2:5000/api/profile', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`, // If you're using auth
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
       },
       body: formData,
     });
 
     const result = await response.json();
 
-    if (result.success) {
-      Alert.alert('Success', 'Profile saved successfully!');
-      await fetchCandidateProfile(); 
-       await AsyncStorage.clear();
-    } else {
-      Alert.alert('Error', result.message || 'Upload failed');
-    }
+   if (result.success) {
+  Alert.alert('Success', 'Profile saved successfully!');
+
+  // ✅ Fetch the saved profile from server
+  await fetchCandidateProfile();
+
+  // ✅ Clear only draft data (not auth)
+  try {
+    await AsyncStorage.removeItem('profileImageUri');
+    await AsyncStorage.removeItem('resumeUri');
+    await AsyncStorage.removeItem('resumeName');
+    await AsyncStorage.removeItem('program');
+    await AsyncStorage.removeItem('yourName');
+    await AsyncStorage.removeItem('yourEmail');
+    await AsyncStorage.removeItem('bio');
+    await AsyncStorage.removeItem('skills');
+    await AsyncStorage.removeItem('jobType');
+    await AsyncStorage.removeItem('socialHandles');
+    await AsyncStorage.removeItem('experienceSections');
+    await AsyncStorage.removeItem('educationSections');
+  } catch (error) {
+    console.warn('Failed to clear draft data:', error);
+  }
+} else {
+  Alert.alert('Error', result.message || 'Upload failed');
+}
   } catch (error) {
     console.error('Upload error:', error);
     Alert.alert('Error', 'An error occurred during upload');
   }
 };
-const isValidJson = (text) => {
-  try {
-    JSON.parse(text);
-    return true;
-  } catch (error) {
-    return false;
-  }
-};
 
-const fetchCandidateProfile = async () => {
-  try {
-    const url = `http://10.0.2.2:5000/api/candidates/${user._id}`;
-    console.log("📡 Fetching from:", url);
-
-    const response = await fetch(url);
-
-    console.log("📶 Response status:", response.status);
-
-    if (!response.ok) {
-      const text = await response.text(); // Read raw text to inspect it
-      console.error("❌ Server responded with error:", text);
-      throw new Error("Network response was not ok");
-    }
-
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      const text = await response.text();
-      console.error("❌ Invalid content type. Got:", contentType, "Response:", text);
-      throw new Error("Expected JSON, got something else");
-    }
-
-    const text = await response.text(); // Read as text first
-
-    if (isValidJson(text)) {
-      const data = JSON.parse(text);
-      console.log("✅ Received profile:", data);
-      setCandidateData(data);
-      setShowDashboard(true);
-    } else {
-      console.error("❌ Response is not valid JSON:", text);
-      setShowDashboard(false);
-    }
-
-  } catch (error) {
-    console.error("Fetch error:", error);
-    setShowDashboard(false);
-  }
-};
-  const addExperienceSection = () => {
+const addExperienceSection = () => {
     const newId = experienceSections.length;
     setExperienceSections([
       ...experienceSections, 
@@ -439,7 +485,7 @@ const handleEducationFieldChange = (id, field, value) => {
         )}
         <Text style={styles.uploadText}>Upload Profile Picture</Text>
       </TouchableOpacity>
-
+        
       <Text style={styles.label}>Select Program of Study</Text>
       <View style={styles.pickerWrapper}>
       <Picker

@@ -1,15 +1,37 @@
-import React, { createContext, useState } from 'react';
+// components/AuthContext.js
+import React, { createContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Create the AuthContext
 export const AuthContext = createContext();
 
-// AuthProvider component that wraps the app and provides auth state
 export default function AuthProvider({ children }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true); // Critical!
 
-  // Dummy admin login logic — replace with real API call later
+  // Restore auth state on app start
+  useEffect(() => {
+    const restoreAuth = async () => {
+      try {
+        const savedToken = await AsyncStorage.getItem('authToken');
+        const savedUser = await AsyncStorage.getItem('userData');
+
+        if (savedToken && savedUser) {
+          setToken(savedToken);
+          setUser(JSON.parse(savedUser));
+        }
+      } catch (error) {
+        console.error('Failed to restore auth', error);
+      } finally {
+        setIsLoadingAuth(false); // Always stop loading
+      }
+    };
+
+    restoreAuth();
+  }, []);
+
+  // Dummy admin login — keep for testing
   const login = (username, password) => {
     if (username === 'admin' && password === 'admin123') {
       setIsAdmin(true);
@@ -18,27 +40,38 @@ export default function AuthProvider({ children }) {
     return false;
   };
 
-  const logout = () => setIsAdmin(false);
-
-  // Sign in user with token and user data
-  const signIn = (token, user) => {
-    setToken(token);
-    setUser(user);
+  const logout = () => {
+    setIsAdmin(false);
+    signOut();
   };
 
-  // Sign up user — same as signIn for now (you can customize later)
-  const signUp = (token, user) => {
-     console.log("Signing up user:", user);
+  // Real user sign in (from /signin response)
+  const signIn = async (token, userData) => {
     setToken(token);
-    setUser(user);
+    setUser(userData);
+
+    // Save to device
+    await AsyncStorage.setItem('authToken', token);
+    await AsyncStorage.setItem('userData', JSON.stringify(userData));
+
+    setIsLoadingAuth(false);
   };
 
-  const signOut = () => {
+  const signUp = async (token, userData) => {
+    console.log("Signing up user:", userData);
+    signIn(token, userData); // Same logic
+  };
+
+  const signOut = async () => {
     setToken(null);
     setUser(null);
+    setIsLoadingAuth(false);
+
+    // Clear storage
+    await AsyncStorage.removeItem('authToken');
+    await AsyncStorage.removeItem('userData');
   };
 
-  // Context value passed to consumers
   const authValues = {
     isAdmin,
     login,
@@ -47,12 +80,13 @@ export default function AuthProvider({ children }) {
     token,
     signIn,
     signOut,
-    signUp, // ✅ Now correctly exported
+    signUp,
+    isLoadingAuth, // ✅ Expose so screens can wait
   };
 
   return (
     <AuthContext.Provider value={authValues}>
-      {children}
+      {!isLoadingAuth ? children : null}
     </AuthContext.Provider>
   );
 }

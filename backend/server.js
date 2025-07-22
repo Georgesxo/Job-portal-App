@@ -1,15 +1,22 @@
+require('dotenv').config();
+console.log('CLOUDINARY_API_KEY:', process.env.CLOUDINARY_API_KEY); // Debug
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
-const profileRoutes = require('./routes/auth');
+const profileRoutes = require('./routes/Profile');
 const app = express();
-// Load environment variables
-require('dotenv').config();
 
-console.log('MONGO_URI:', process.env.MONGO_URI); // Debug log
-console.log('JWT_SECRET:', process.env.JWT_SECRET); // Optional
-console.log('PORT:', process.env.PORT); // Optional
+
+console.log('🔍 Full ENV:', {
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
+  CLOUDINARY_API_SECRET: !!process.env.CLOUDINARY_API_SECRET, // Just check if exists
+});
+
+console.log('MONGO_URI:', process.env.MONGO_URI); 
+console.log('JWT_SECRET:', process.env.JWT_SECRET); 
+console.log('PORT:', process.env.PORT); 
 
 app.use(cors({
   //origin: 'http://your-react-native-app-domain.com', // or use ['http://192.168.x.x:19006'] for dev
@@ -17,7 +24,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.json({ limit: '10mb' }));
 app.use('/api', authRoutes);
-app.use('/api/profile', profileRoutes);
+app.use('/api', profileRoutes);
 
 // Validate MONGO_URI before connecting
 if (!process.env.MONGO_URI) {
