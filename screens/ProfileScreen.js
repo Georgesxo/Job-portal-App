@@ -11,7 +11,6 @@ import { AuthContext } from '../components/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CandidateDashboard from '../components/CandidateDashboard';
 
-
 export default function ProfileScreen() {
   const [profileImageUri, setProfileImageUri] = useState(null);
    const [profilePicture, setProfilePicture] = useState('');
@@ -34,6 +33,7 @@ const [candidateData, setCandidateData] = useState(null);
     Website: '',
     github: '',
   });
+
 const handleSocialHandleChange = (platform, value) => {
   setSocialHandles((prevHandles) => ({
     ...prevHandles,
@@ -44,12 +44,61 @@ const handleSocialHandleChange = (platform, value) => {
   const [_isEditingExperience, _setIsEditingExperience] = useState(false);
   const [_isEditingEducation, _setIsEditingEducation] = useState(false);
 
-  
+
+
+  const loadProfileIntoForm = (profile) => {
+  if (!profile) return;
+ 
+  setProgram(profile.program || '');
+  setYourName(profile.yourName || '');
+  setYourEmail(profile.yourEmail || '');
+  setBio(profile.bio || '');
+  setSkills(profile.skills || '');
+  setJobType(profile.jobType || '');
+
+  // Fill social handles
+  if (profile.socialHandles) {
+    setSocialHandles({
+      facebook: profile.socialHandles.facebook || '',
+      twitter: profile.socialHandles.twitter || '',
+      instagram: profile.socialHandles.instagram || '',
+      LinkedIn: profile.socialHandles.LinkedIn || '',
+      Website: profile.socialHandles.Website || '',
+      github: profile.socialHandles.github || '',
+    });
+  }
+
+  // Fill experiences
+ if (Array.isArray(profile.experiences)) {
+  setExperienceSections(
+    profile.experiences.map((exp, index) => ({
+      id: index,
+      isEditing: true,
+      savedData: exp,
+      isExpanded: false,
+    }))
+  );
+} else {
+  setExperienceSections([{ id: 0, isEditing: true, savedData: {}, isExpanded: false }]);
+}
+
+if (Array.isArray(profile.education)) {
+  setEducationSections(
+    profile.education.map((edu, index) => ({
+      id: index,
+      isEditing: true,
+      savedData: edu,
+      isExpanded: false,
+    }))
+  );
+} else {
+  setEducationSections([{ id: 0, isEditing: true, savedData: {}, isExpanded: false }]);
+}
+};
 useEffect(() => {
   const saveData = async () => {
     try {
-      await AsyncStorage.setItem('profileImageUri', profileImageUri || '');
-      await AsyncStorage.setItem('resumeUri', resumeUri || '');
+
       await AsyncStorage.setItem('resumeName', resumeName || '');
       await AsyncStorage.setItem('program', program || '');
       await AsyncStorage.setItem('yourName', yourName || '');
@@ -66,8 +115,6 @@ useEffect(() => {
   };
   saveData();
 }, [
-  profileImageUri,
-  resumeUri,
   resumeName,
   program,
   yourName,
@@ -198,7 +245,7 @@ useEffect(() => {
   };
   loadProfile();
 }, [token, user?.id, isLoadingAuth]); // ✅ Watch all three
-
+console.log("🔐 Current user.id:", user?.id);
 const fetchCandidateProfile = async () => {
     try {
       if (!token || !user?.id) {
@@ -213,6 +260,7 @@ const fetchCandidateProfile = async () => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log("✅ Profile loaded:", data);
         setCandidateData(data);
         setShowDashboard(true);
         return true;
@@ -227,27 +275,26 @@ const fetchCandidateProfile = async () => {
       return false;
     }
   };
-
 const handleSaveProfile = async () => {
-  if (!profileImageUri || !resumeUri) {
-    Alert.alert('Missing Data', 'Please select both a profile image and a resume file.');
-    return;
-  }
-
   const formData = new FormData();
 
-  formData.append('profilePicture', {
-    uri: profileImageUri,
-    type: mime.getType(profileImageUri),
-    name: `profile.${mime.getExtension(mime.getType(profileImageUri))}`,
-  });
+  if (profileImageUri) {
+    formData.append('profilePicture', {
+      uri: profileImageUri,
+      type: mime.getType(profileImageUri),
+      name: `profile.${mime.getExtension(mime.getType(profileImageUri))}`,
+    });
+  }
 
-  formData.append('resumeFile', {
-    uri: resumeUri,
-    type: mime.getType(resumeUri),
-    name: resumeName || `resume.${mime.getExtension(mime.getType(resumeUri))}`,
-  });
+  if (resumeUri) {
+    formData.append('resumeFile', {
+      uri: resumeUri,
+      type: mime.getType(resumeUri),
+      name: resumeName || `resume.${mime.getExtension(mime.getType(resumeUri))}`,
+    });
+  }
 
+  // Append all other fields...
   formData.append('yourName', yourName);
   formData.append('yourEmail', yourEmail);
   formData.append('bio', bio);
@@ -255,10 +302,19 @@ const handleSaveProfile = async () => {
   formData.append('jobType', jobType);
   formData.append('socialHandles', JSON.stringify(socialHandles));
   formData.append('program', program);
-  formData.append('experiences', JSON.stringify(experienceSections.map(sec => sec.savedData)));
-  formData.append('education', JSON.stringify(educationSections.map(sec => sec.savedData)));
+
+  const experiencesData = Array.isArray(experienceSections)
+    ? experienceSections.map(sec => sec.savedData).filter(Boolean)
+    : [];
+  formData.append('experiences', JSON.stringify(experiencesData));
+
+  const educationData = Array.isArray(educationSections)
+    ? educationSections.map(sec => sec.savedData).filter(Boolean)
+    : [];
+  formData.append('education', JSON.stringify(educationData));
 
   try {
+    console.log("📤 Sending to http://10.0.2.2:5000/api/profile");
     const response = await fetch('http://10.0.2.2:5000/api/profile', {
       method: 'POST',
       headers: {
@@ -268,40 +324,65 @@ const handleSaveProfile = async () => {
       body: formData,
     });
 
-    const result = await response.json();
+    console.log("📡 Response status:", response.status);
 
-   if (result.success) {
-  Alert.alert('Success', 'Profile saved successfully!');
+    const rawText = await response.text();
+    console.log("📄 Raw response text:", rawText);
 
-  // ✅ Fetch the saved profile from server
-  await fetchCandidateProfile();
+    try {
+      const result = JSON.parse(rawText);
 
-  // ✅ Clear only draft data (not auth)
-  try {
-    await AsyncStorage.removeItem('profileImageUri');
-    await AsyncStorage.removeItem('resumeUri');
-    await AsyncStorage.removeItem('resumeName');
-    await AsyncStorage.removeItem('program');
-    await AsyncStorage.removeItem('yourName');
-    await AsyncStorage.removeItem('yourEmail');
-    await AsyncStorage.removeItem('bio');
-    await AsyncStorage.removeItem('skills');
-    await AsyncStorage.removeItem('jobType');
-    await AsyncStorage.removeItem('socialHandles');
-    await AsyncStorage.removeItem('experienceSections');
-    await AsyncStorage.removeItem('educationSections');
+      if (result.success) {
+        Alert.alert('Success', 'Profile saved successfully!');
+
+        // ✅ Update candidateData immediately with what was just saved
+        const updatedProfile = {
+          ...result.profile, // From server (includes URLs)
+          yourName,
+          yourEmail,
+          bio,
+          skills,
+          jobType,
+          program,
+          socialHandles,
+          experiences: experiencesData,
+          education: educationData,
+          // Keep profilePictureUrl and cvFileUrl from server
+        };
+
+        // ✅ Update dashboard with fresh data
+        setCandidateData(updatedProfile);
+        setShowDashboard(true);
+
+        // ✅ Clear drafts
+        try {
+          await AsyncStorage.removeItem('profileImageUri');
+          await AsyncStorage.removeItem('resumeUri');
+          await AsyncStorage.removeItem('resumeName');
+          await AsyncStorage.removeItem('program');
+          await AsyncStorage.removeItem('yourName');
+          await AsyncStorage.removeItem('yourEmail');
+          await AsyncStorage.removeItem('bio');
+          await AsyncStorage.removeItem('skills');
+          await AsyncStorage.removeItem('jobType');
+          await AsyncStorage.removeItem('socialHandles');
+          await AsyncStorage.removeItem('experienceSections');
+          await AsyncStorage.removeItem('educationSections');
+        } catch (error) {
+          console.warn('Failed to clear draft ', error);
+        }
+      } else {
+        Alert.alert('Error', result.message || 'Upload failed');
+      }
+    } catch (parseError) {
+      console.error("❌ Response is not JSON:", rawText);
+      Alert.alert('Error', 'Server returned invalid response. Check backend logs.');
+    }
   } catch (error) {
-    console.warn('Failed to clear draft data:', error);
-  }
-} else {
-  Alert.alert('Error', result.message || 'Upload failed');
-}
-  } catch (error) {
-    console.error('Upload error:', error);
-    Alert.alert('Error', 'An error occurred during upload');
+    console.error("🚨 Upload error:", error);
+    Alert.alert('Error', 'An error occurred during upload. Check console.');
   }
 };
-
 const addExperienceSection = () => {
     const newId = experienceSections.length;
     setExperienceSections([
@@ -469,22 +550,32 @@ const handleEducationFieldChange = (id, field, value) => {
       <SafeAreaView edges={['top']} style={styles.safeArea}>
         <SafeAreaView edges={['bottom']} style={styles.safeArea}>
     <ScrollView contentContainerStyle={styles.container}>
-      {showDashboard ? (
-      <CandidateDashboard
-        data={candidateData}
-        onEdit={() => setShowDashboard(false)}
-      />
-    ) : (
-      <>
-      <Text style={styles.heading}>Edit your Professional Profile</Text>
-      <TouchableOpacity style={styles.profilePictureUpload} onPress={handleProfilePictureChange}>
-        {profileImageUri ? (
-          <Image source={{ uri: profileImageUri }} style={styles.profilePictureImage} />
-        ) : (
-          <FontAwesome name="user-circle" style={styles.profilePictureIcon} />
-        )}
-        <Text style={styles.uploadText}>Upload Profile Picture</Text>
-      </TouchableOpacity>
+   {showDashboard ? (
+        // ✅ Show Dashboard
+        <CandidateDashboard
+          data={candidateData}
+          onEdit={() => {
+            loadProfileIntoForm(candidateData); // 👈 Pre-fill form from server data
+            setShowDashboard(false);           // 👉 Then switch to edit mode
+          }}
+        />
+      ) : (
+        // ✅ Show Edit Form
+        <>
+          <Text style={styles.heading}>Edit your Professional Profile</Text>
+
+          <TouchableOpacity style={styles.profilePictureUpload} onPress={handleProfilePictureChange}>
+            {profileImageUri ? (
+              <Image source={{ uri: profileImageUri }} style={styles.profilePictureImage} />
+              ) : candidateData?.profilePictureUrl ? (
+                // Show saved Cloudinary image
+               <Image source={{ uri: candidateData.profilePictureUrl }} style={styles.preview} />  
+            ) : (
+              <FontAwesome name="user-circle" style={styles.profilePictureIcon} />
+            )}
+            <Text style={styles.uploadText}>Upload Profile Picture</Text>
+          </TouchableOpacity>
+
         
       <Text style={styles.label}>Select Program of Study</Text>
       <View style={styles.pickerWrapper}>
@@ -862,7 +953,13 @@ const handleEducationFieldChange = (id, field, value) => {
     <Text style={styles.addEducation}>Add education +</Text>
   </TouchableOpacity>
 </View>
+    {resumeUri ? (
+  <Text>📄 {resumeName || 'New Resume'}</Text>
+) : candidateData?.cvFileUrl ? (
+  <Text>📄 {candidateData.cvFileUrl.split('/').pop()}</Text>
+) : (
    <Text style={styles.resume}>Upload your Resume/CV</Text>
+   )}
      <TouchableOpacity style={styles.SelectFileButton} onPress={handleResumeUpload}>
   <Text style={styles.uploadButtonText}> {resumeName ? resumeName : 'No CV selected'}
   </Text>

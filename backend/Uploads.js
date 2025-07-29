@@ -9,11 +9,15 @@ const cloudinary = require('cloudinary').v2;
 
 console.log('🔐 In Uploads.js - CLOUDINARY_API_KEY:', process.env.CLOUDINARY_API_KEY); // Debug
 
-cloudinary.config({
+console.log('🔐 Cloudinary config:', {
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  has_api_key: !!process.env.CLOUDINARY_API_KEY,
+  has_api_secret: !!process.env.CLOUDINARY_API_SECRET,
 });
+
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  console.error('❌ Missing Cloudinary credentials');
+}
 
 const storage = new CloudinaryStorage({
   cloudinary,

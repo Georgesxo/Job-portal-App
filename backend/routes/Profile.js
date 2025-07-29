@@ -1,4 +1,4 @@
-// routes/profile.js
+// routes/Profile.js
 const express = require('express');
 const router = express.Router();
 const upload = require('../Uploads');
@@ -19,6 +19,7 @@ const authenticateToken = (req, res, next) => {
 };
 
 // POST /api/profile - Save or update profile
+console.log('🔥 LOADING Profile.js');
 router.post(
   '/',
   authenticateToken,
@@ -31,6 +32,15 @@ router.post(
       const userId = req.user.id;
       const formData = { ...req.body };
 
+      // ✅ Handle file URLs
+      if (req.files?.profilePicture?.[0]) {
+        formData.profilePictureUrl = req.files.profilePicture[0].path;
+      }
+      if (req.files?.resumeFile?.[0]) {
+        formData.cvFileUrl = req.files.resumeFile[0].path;
+      }
+
+      // ✅ Parse only if string
       if (typeof formData.socialHandles === 'string') {
         formData.socialHandles = JSON.parse(formData.socialHandles);
       }
@@ -41,20 +51,19 @@ router.post(
         formData.education = JSON.parse(formData.education);
       }
 
-      if (req.files.profilePicture) {
-        formData.profilePictureUrl = req.files.profilePicture[0].path;
-      }
-      if (req.files.resumeFile) {
-        formData.cvFileUrl = req.files.resumeFile[0].path;
-      }
-
       const existing = await Profile.findOne({ userId });
+
       if (existing) {
-        const updated = await Profile.findOneAndUpdate(
-          { userId },
-          formData,
-          { new: true, runValidators: true }
-        );
+        // ✅ Preserve old URLs if no new files
+        if (!req.files?.profilePicture && !formData.profilePictureUrl) {
+          formData.profilePictureUrl = existing.profilePictureUrl;
+        }
+        if (!req.files?.resumeFile && !formData.cvFileUrl) {
+          formData.cvFileUrl = existing.cvFileUrl;
+        }
+
+        const updated = await Profile.findOneAndUpdate({ userId }, formData, { new: true });
+        console.log('✅ Profile saved in DB:', profile || updated);
         return res.json({ success: true, profile: updated });
       }
 
@@ -62,12 +71,12 @@ router.post(
       return res.json({ success: true, profile });
 
     } catch (err) {
-      console.error('❌ Error saving profile:', err.message || err);
+      console.error('❌ Server error:', err.message || err);
+      console.error('📝 Stack:', err.stack);
       return res.status(500).json({ success: false, message: 'Server error saving profile' });
     }
   }
 );
-
 // GET /api/candidates/:id - Fetch candidate profile by ID
 router.get('/candidates/:id', authenticateToken, async (req, res) => {
   try {
@@ -91,3 +100,4 @@ router.get('/candidates/:id', authenticateToken, async (req, res) => {
 });
 
 module.exports = router;
+console.log('✅ Profile route loaded:', router.stack?.length, 'routes registered');
