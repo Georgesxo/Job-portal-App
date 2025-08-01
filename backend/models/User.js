@@ -1,10 +1,11 @@
+// models/user.js
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
   studentId: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+  // REMOVED: userId field — it doesn't belong here
   profilePicture: String,
   program: String,
   yourName: String,

@@ -78,7 +78,7 @@ router.post(
   }
 );
 // GET /api/candidates/:id - Fetch candidate profile by ID
-router.get('/candidates/:id', authenticateToken, async (req, res) => {
+router.get('/candidates/:id',authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
